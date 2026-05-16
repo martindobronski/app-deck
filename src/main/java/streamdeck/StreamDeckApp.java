@@ -6,6 +6,7 @@ import javax.swing.border.AbstractBorder;
 import javax.swing.border.Border;
 import javax.swing.filechooser.FileSystemView;
 import java.awt.*;
+import java.awt.datatransfer.StringSelection;
 import java.awt.event.KeyEvent;
 import java.awt.image.BufferedImage;
 import java.io.File;
@@ -115,6 +116,7 @@ public class StreamDeckApp extends JFrame {
                     if (dragPerformed) { dragPerformed = false; return; }
                     int pageIdx = gridToPageIndex(gridIdx);
                     if (pageIdx < 0) {
+                        if (currentFolder != null && gridIdx == 13) { leaveFolder(); return; }
                         if (currentFolder != null && gridIdx == 10) { leaveFolder(); return; }
                         prevPage(); return;
                     }
@@ -230,9 +232,15 @@ public class StreamDeckApp extends JFrame {
     private int gridToPageIndex(int gridIdx) {
         if (gridIdx == 14) return -1;
         if (currentFolder != null) {
-            if (gridIdx == 10) return -1;
-            if (gridIdx < 10) return gridIdx;
-            return gridIdx - 1;
+            if (currentPage == 0) {
+                if (gridIdx < 10) return gridIdx;
+                if (gridIdx == 10) return -1;
+                return gridIdx - 1;
+            } else {
+                if (gridIdx < 10) return gridIdx;
+                if (gridIdx == 10 || gridIdx == 13) return -1;
+                return gridIdx - 1;
+            }
         }
         int row = gridIdx / COLS;
         int col = gridIdx % COLS;
@@ -244,7 +252,7 @@ public class StreamDeckApp extends JFrame {
     private int pageToGridIndex(int pageIdx) {
         if (currentFolder != null) {
             if (pageIdx < 10) return pageIdx;
-            return pageIdx + 1;
+            return currentPage == 0 ? pageIdx + 1 : pageIdx + 2;
         }
         if (pageIdx < (ROWS - 1) * COLS) return pageIdx;
         if (currentPage == 0) return pageIdx;
@@ -294,8 +302,8 @@ public class StreamDeckApp extends JFrame {
         List<ButtonConfig> btns = currentPageBtns();
         int pageIdx = gridToPageIndex(gridIdx);
         if (pageIdx < 0) {
-            if (currentFolder != null && gridIdx == 10) {
-                btn.setFont(btn.getFont().deriveFont(24f));
+            if (currentFolder != null && ((currentPage == 0 && gridIdx == 10) || (currentPage > 0 && gridIdx == 13))) {
+                btn.setFont(btn.getFont().deriveFont(48f));
                 btn.setText("\u2190");
                 btn.setToolTipText("Zur\u00fcck");
                 btn.setEnabled(true);
@@ -319,10 +327,12 @@ public class StreamDeckApp extends JFrame {
             btn.setText("<html><center>" + cfg.getLabel().replace("\n", "<br>") + "</center></html>");
             btn.setToolTipText(cfg.getType() + ": " + cfg.getTarget());
             btn.setEnabled(true);
-            if (!"FOLDER".equals(cfg.getType()))
-                loadIconAsync(gridIdx, cfg.getType(), cfg.getTarget());
-            else
+            if ("FOLDER".equals(cfg.getType()))
                 btn.setIcon(getFolderIcon());
+            else if ("COPY".equals(cfg.getType()))
+                btn.setIcon(getCopyIcon());
+            else
+                loadIconAsync(gridIdx, cfg.getType(), cfg.getTarget());
             if ("PROGRAM".equals(cfg.getType())) {
                 String appKey = extractAppName(cfg.getTarget()).toLowerCase();
                 btn.setBorder(isAppRunning(appKey) && !killedApps.contains(appKey)
@@ -465,7 +475,7 @@ public class StreamDeckApp extends JFrame {
             ? btns.get(pageIdx) : new ButtonConfig("", "URL", "");
 
         JTextField labelField = new JTextField(cfg.getLabel(), 20);
-        JComboBox<String> typeBox = new JComboBox<>(new String[]{"URL", "PROGRAM", "FOLDER"});
+        JComboBox<String> typeBox = new JComboBox<>(new String[]{"URL", "PROGRAM", "FOLDER", "COPY"});
         typeBox.setSelectedItem(cfg.getType());
 
         JTextField targetField = new JTextField(cfg.getTarget(), 20);
@@ -473,7 +483,7 @@ public class StreamDeckApp extends JFrame {
             private void check() {
                 String text = targetField.getText().trim();
                 if (text.isEmpty()) return;
-                if ("FOLDER".equals(typeBox.getSelectedItem())) return;
+                if ("FOLDER".equals(typeBox.getSelectedItem()) || "COPY".equals(typeBox.getSelectedItem())) return;
                 if (text.startsWith("http://") || text.startsWith("https://")) {
                     typeBox.setSelectedItem("URL");
                     String suggested = suggestLabel(text);
@@ -501,8 +511,8 @@ public class StreamDeckApp extends JFrame {
         });
 
         typeBox.addActionListener(ev -> {
-            boolean isFolder = "FOLDER".equals(typeBox.getSelectedItem());
-            targetField.setEnabled(!isFolder);
+            boolean disable = "FOLDER".equals(typeBox.getSelectedItem());
+            targetField.setEnabled(!disable);
         });
 
         JButton browseBtn = new JButton("...");
@@ -646,6 +656,25 @@ public class StreamDeckApp extends JFrame {
             currentPage = 0;
             currentFolder = cfg;
             updateAllButtons();
+            return;
+        }
+        if ("COPY".equals(cfg.getType())) {
+            StringSelection sel = new StringSelection(cfg.getTarget());
+            Toolkit.getDefaultToolkit().getSystemClipboard().setContents(sel, null);
+            int gridIdx = -1;
+            List<ButtonConfig> btns = currentPageBtns();
+            for (int i = 0; i < btnComponents.length; i++) {
+                int pi = gridToPageIndex(i);
+                if (pi >= 0 && pi < btns.size() && btns.get(pi) == cfg) { gridIdx = i; break; }
+            }
+            if (gridIdx >= 0) {
+                JButton fb = btnComponents[gridIdx];
+                String orig = fb.getText();
+                fb.setText("Kopiert!");
+                javax.swing.Timer reset = new javax.swing.Timer(1200, ev -> { fb.setText(orig); });
+                reset.setRepeats(false);
+                reset.start();
+            }
             return;
         }
         try {
@@ -868,6 +897,7 @@ public class StreamDeckApp extends JFrame {
     private static final Border ROUNDED_BORDER_RUNNING = new RoundedShadowBorder(new Color(0, 180, 0), 4f);
     private static Icon globeIcon;
     private static Icon folderIcon;
+    private static Icon copyIcon;
 
     private static Icon getGlobeIcon() {
         if (globeIcon == null) globeIcon = new ImageIcon(createGlobeImage());
@@ -877,6 +907,11 @@ public class StreamDeckApp extends JFrame {
     private static Icon getFolderIcon() {
         if (folderIcon == null) folderIcon = new ImageIcon(createFolderImage());
         return folderIcon;
+    }
+
+    private static Icon getCopyIcon() {
+        if (copyIcon == null) copyIcon = new ImageIcon(createCopyImage());
+        return copyIcon;
     }
 
     private static BufferedImage createGlobeImage() {
@@ -920,6 +955,36 @@ public class StreamDeckApp extends JFrame {
         g.setColor(new Color(170, 130, 20));
         g.drawRoundRect(pad + 5, pad, tabW, tabH, 4, 4);
         g.drawRoundRect(pad + 2, pad + tabH - 3, s - pad * 2 - 2, s - pad - tabH, 6, 6);
+
+        g.dispose();
+        return img;
+    }
+
+    private static BufferedImage createCopyImage() {
+        int s = ICON_SIZE;
+        BufferedImage img = new BufferedImage(s, s, BufferedImage.TYPE_INT_ARGB);
+        Graphics2D g = img.createGraphics();
+        g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+
+        int p = 5, clipW = 6, clipH = 5;
+        g.setColor(new Color(200, 200, 210));
+        g.fillRoundRect(p + (s - p * 2 - clipW) / 2, p - 2, clipW, clipH, 2, 2);
+
+        g.setColor(new Color(100, 120, 200));
+        g.fillRoundRect(p, p + clipH - 2, s - p * 2, s - p - clipH + 2, 5, 5);
+
+        g.setColor(new Color(230, 240, 255));
+        g.setStroke(new BasicStroke(2f));
+        int lx = p + 6, ly = p + clipH + 4;
+        for (int i = 0; i < 3; i++) {
+            int y = ly + i * 8;
+            g.drawLine(lx, y, s - lx, y);
+        }
+        g.drawLine(lx, ly + 24, s - lx - 6, ly + 24);
+
+        g.setStroke(new BasicStroke(1.5f));
+        g.setColor(new Color(80, 100, 170));
+        g.drawRoundRect(p, p + clipH - 2, s - p * 2, s - p - clipH + 2, 5, 5);
 
         g.dispose();
         return img;
