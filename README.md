@@ -10,7 +10,7 @@ Ein Java-Swing-Programm, das wie ein Stream Deck funktioniert – mit konfigurie
 - **Programm-Buttons** – starten macOS-Apps oder beliebige Kommandos
 - **JSON-Konfiguration** – wird beim Bearbeiten automatisch gespeichert
 - **Bearbeiten per Rechtsklick** – Label, Typ (URL/PROGRAM) und Ziel frei konfigurierbar
-- **Label-Vorschlag** – wird automatisch aus URL-Domain oder Programmname extrahiert
+- **Label-Vorschlag** – wird automatisch aus URL-Domain, Dateipfad (`file://`) oder Programmname extrahiert
 - **Dateiauswahldialog** mit Tastaturnavigation (Buchstaben springen zum passenden Eintrag)
 - **Drag & Drop** – Buttons durch Ziehen neu anordnen
 - **Laufende Apps erkennen** – grüner Rahmen, wenn das Programm aktiv ist (auch bei abweichenden Prozessnamen, z. B. `Code` für VS Code)

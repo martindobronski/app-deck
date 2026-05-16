@@ -397,6 +397,10 @@ public class StreamDeckApp extends JFrame {
                     typeBox.setSelectedItem("URL");
                     String suggested = suggestLabel(text);
                     if (suggested != null) labelField.setText(suggested);
+                } else if (text.startsWith("file://")) {
+                    typeBox.setSelectedItem("URL");
+                    String suggested = suggestLabel(text);
+                    if (suggested != null) labelField.setText(suggested);
                 } else if (text.startsWith("open -a ")) {
                     typeBox.setSelectedItem("PROGRAM");
                     String name = text.substring(8).trim().replace("\\ ", " ");
@@ -653,22 +657,31 @@ public class StreamDeckApp extends JFrame {
         try {
             URI uri = new URI(url);
             String host = uri.getHost();
-            if (host == null) return null;
-            String[] parts = host.split("\\.");
-            String mainDomain = parts.length >= 2 ? parts[parts.length - 2] : parts[0];
-            String subdomain = parts.length > 2 ? parts[0] : null;
-            String name = Character.toUpperCase(mainDomain.charAt(0)) + mainDomain.substring(1);
-            if (subdomain != null && !subdomain.equals("www"))
-                name += " " + Character.toUpperCase(subdomain.charAt(0)) + subdomain.substring(1);
             String path = uri.getPath();
-            if (path != null && !path.isEmpty() && !path.equals("/")) {
+            if (host != null) {
+                String[] parts = host.split("\\.");
+                String mainDomain = parts.length >= 2 ? parts[parts.length - 2] : parts[0];
+                String subdomain = parts.length > 2 ? parts[0] : null;
+                String name = Character.toUpperCase(mainDomain.charAt(0)) + mainDomain.substring(1);
+                if (subdomain != null && !subdomain.equals("www"))
+                    name += " " + Character.toUpperCase(subdomain.charAt(0)) + subdomain.substring(1);
+                if (path != null && !path.isEmpty() && !path.equals("/")) {
+                    String segment = path.replaceAll("^/+|/+$", "");
+                    if (!segment.isEmpty()) {
+                        String last = segment.contains("/") ? segment.substring(segment.lastIndexOf('/') + 1) : segment;
+                        if (!last.isEmpty()) name += " " + Character.toUpperCase(last.charAt(0)) + last.substring(1);
+                    }
+                }
+                return name;
+            } else if (path != null && !path.isEmpty()) {
                 String segment = path.replaceAll("^/+|/+$", "");
-                if (!segment.isEmpty()) {
-                    String last = segment.contains("/") ? segment.substring(segment.lastIndexOf('/') + 1) : segment;
-                    if (!last.isEmpty()) name += " " + Character.toUpperCase(last.charAt(0)) + last.substring(1);
+                String last = segment.contains("/") ? segment.substring(segment.lastIndexOf('/') + 1) : segment;
+                if (!last.isEmpty()) {
+                    last = last.replaceAll("\\.[^.]+$", "");
+                    return Character.toUpperCase(last.charAt(0)) + last.substring(1);
                 }
             }
-            return name;
+            return null;
         } catch (Exception ignored) { return null; }
     }
 
