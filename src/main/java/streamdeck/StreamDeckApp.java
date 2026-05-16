@@ -321,6 +321,8 @@ public class StreamDeckApp extends JFrame {
             btn.setEnabled(true);
             if (!"FOLDER".equals(cfg.getType()))
                 loadIconAsync(gridIdx, cfg.getType(), cfg.getTarget());
+            else
+                btn.setIcon(getFolderIcon());
             if ("PROGRAM".equals(cfg.getType())) {
                 String appKey = extractAppName(cfg.getTarget()).toLowerCase();
                 btn.setBorder(isAppRunning(appKey) && !killedApps.contains(appKey)
@@ -704,6 +706,10 @@ public class StreamDeckApp extends JFrame {
             default -> null;
         };
         if (icon != null) iconCache.put(cacheKey, icon);
+        else {
+            icon = getGlobeIcon();
+            iconCache.put(cacheKey, icon);
+        }
         return icon;
     }
 
@@ -860,6 +866,64 @@ public class StreamDeckApp extends JFrame {
 
     private static final Border ROUNDED_BORDER = new RoundedShadowBorder(new Color(170, 170, 175), 1f);
     private static final Border ROUNDED_BORDER_RUNNING = new RoundedShadowBorder(new Color(0, 180, 0), 4f);
+    private static Icon globeIcon;
+    private static Icon folderIcon;
+
+    private static Icon getGlobeIcon() {
+        if (globeIcon == null) globeIcon = new ImageIcon(createGlobeImage());
+        return globeIcon;
+    }
+
+    private static Icon getFolderIcon() {
+        if (folderIcon == null) folderIcon = new ImageIcon(createFolderImage());
+        return folderIcon;
+    }
+
+    private static BufferedImage createGlobeImage() {
+        int s = ICON_SIZE;
+        BufferedImage img = new BufferedImage(s, s, BufferedImage.TYPE_INT_ARGB);
+        Graphics2D g = img.createGraphics();
+        g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+
+        g.setColor(new Color(70, 140, 220));
+        g.fillOval(2, 2, s - 4, s - 4);
+
+        g.setColor(new Color(255, 255, 255, 100));
+        g.setStroke(new BasicStroke(1.2f));
+        g.drawOval(2, s / 4, s - 4, (s - 4) / 2);
+        g.drawOval(s / 4, 2, (s - 4) / 2, s - 4);
+
+        g.setStroke(new BasicStroke(1.8f));
+        g.setColor(new Color(50, 110, 190));
+        g.drawOval(2, 2, s - 4, s - 4);
+
+        g.dispose();
+        return img;
+    }
+
+    private static BufferedImage createFolderImage() {
+        int s = ICON_SIZE;
+        BufferedImage img = new BufferedImage(s, s, BufferedImage.TYPE_INT_ARGB);
+        Graphics2D g = img.createGraphics();
+        g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+
+        int pad = 4, tabW = 14, tabH = 6;
+        GradientPaint gp = new GradientPaint(0, pad + tabH, new Color(245, 215, 85),
+            0, s - pad, new Color(210, 175, 50));
+        g.setPaint(gp);
+        g.fillRoundRect(pad + 2, pad + tabH - 3, s - pad * 2 - 2, s - pad - tabH, 6, 6);
+
+        g.setColor(new Color(215, 185, 55));
+        g.fillRoundRect(pad + 5, pad, tabW, tabH, 4, 4);
+
+        g.setStroke(new BasicStroke(1.5f));
+        g.setColor(new Color(170, 130, 20));
+        g.drawRoundRect(pad + 5, pad, tabW, tabH, 4, 4);
+        g.drawRoundRect(pad + 2, pad + tabH - 3, s - pad * 2 - 2, s - pad - tabH, 6, 6);
+
+        g.dispose();
+        return img;
+    }
 
     private static class RoundedShadowBorder extends AbstractBorder {
         private static final int ARC = 14;
