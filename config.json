@@ -1,9 +1,9 @@
 [
   [
     {
-      "label": "Maps",
+      "label": "Index",
       "type": "URL",
-      "target": "https://maps.google.com"
+      "target": "file:///Users/martin/Favoriten-Seite/index.html"
     },
     {
       "label": "Calendar",

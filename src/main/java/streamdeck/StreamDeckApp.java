@@ -676,7 +676,12 @@ public class StreamDeckApp extends JFrame {
             } else if (path != null && !path.isEmpty()) {
                 String segment = path.replaceAll("^/+|/+$", "");
                 String last = segment.contains("/") ? segment.substring(segment.lastIndexOf('/') + 1) : segment;
+                String parent = segment.contains("/") ? segment.substring(0, segment.lastIndexOf('/')) : "";
                 if (!last.isEmpty()) {
+                    if (!parent.isEmpty() && last.matches("(?i)(index|default)\\.[a-z0-9]+")) {
+                        String dir = parent.contains("/") ? parent.substring(parent.lastIndexOf('/') + 1) : parent;
+                        if (!dir.isEmpty()) return Character.toUpperCase(dir.charAt(0)) + dir.substring(1);
+                    }
                     last = last.replaceAll("\\.[^.]+$", "");
                     return Character.toUpperCase(last.charAt(0)) + last.substring(1);
                 }
