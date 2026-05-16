@@ -13,7 +13,7 @@ Ein Java-Swing-Programm, das wie ein Stream Deck funktioniert – mit konfigurie
 - **Label-Vorschlag** – wird automatisch aus URL-Domain oder Programmname extrahiert
 - **Dateiauswahldialog** mit Tastaturnavigation (Buchstaben springen zum passenden Eintrag)
 - **Drag & Drop** – Buttons durch Ziehen neu anordnen
-- **Laufende Apps erkennen** – grüner Rahmen, wenn das Programm aktiv ist
+- **Laufende Apps erkennen** – grüner Rahmen, wenn das Programm aktiv ist (auch bei abweichenden Prozessnamen, z. B. `Code` für VS Code)
 - **App per Langdruck beenden** – Button > 800ms gedrückt halten → App wird beendet
 - **App-Icons** – werden automatisch aus .app-Bundles extrahiert (macOS)
 - **SVG-Favicons** – lokale `favicon.svg` im Verzeichnis wird als Icon verwendet
