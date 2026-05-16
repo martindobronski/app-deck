@@ -51,6 +51,8 @@ public class StreamDeckApp extends JFrame {
     private int longPressGridIdx = -1;
     private javax.swing.Timer longPressTimer;
     private final Set<String> killedApps = new HashSet<>();
+    private ButtonConfig currentFolder;
+    private int savedRootPage;
 
     public StreamDeckApp(List<List<ButtonConfig>> pages, String configPath) {
         this.pages = pages;
@@ -112,7 +114,10 @@ public class StreamDeckApp extends JFrame {
                     if (longPressHandled) { longPressHandled = false; return; }
                     if (dragPerformed) { dragPerformed = false; return; }
                     int pageIdx = gridToPageIndex(gridIdx);
-                    if (pageIdx < 0) { prevPage(); return; }
+                    if (pageIdx < 0) {
+                        if (currentFolder != null && gridIdx == 10) { leaveFolder(); return; }
+                        prevPage(); return;
+                    }
                     List<ButtonConfig> btns = currentPageBtns();
                     if (pageIdx < btns.size() && btns.get(pageIdx) != null)
                         execute(btns.get(pageIdx));
@@ -224,6 +229,11 @@ public class StreamDeckApp extends JFrame {
 
     private int gridToPageIndex(int gridIdx) {
         if (gridIdx == 14) return -1;
+        if (currentFolder != null) {
+            if (gridIdx == 10) return -1;
+            if (gridIdx < 10) return gridIdx;
+            return gridIdx - 1;
+        }
         int row = gridIdx / COLS;
         int col = gridIdx % COLS;
         if (row < ROWS - 1) return gridIdx;
@@ -232,14 +242,23 @@ public class StreamDeckApp extends JFrame {
     }
 
     private int pageToGridIndex(int pageIdx) {
+        if (currentFolder != null) {
+            if (pageIdx < 10) return pageIdx;
+            return pageIdx + 1;
+        }
         if (pageIdx < (ROWS - 1) * COLS) return pageIdx;
         if (currentPage == 0) return pageIdx;
         return pageIdx + 1;
     }
 
+    private List<List<ButtonConfig>> currentPageList() {
+        return currentFolder != null ? currentFolder.getPages() : pages;
+    }
+
     private List<ButtonConfig> currentPageBtns() {
-        while (currentPage >= pages.size()) pages.add(new ArrayList<>());
-        return pages.get(currentPage);
+        List<List<ButtonConfig>> list = currentPageList();
+        while (currentPage >= list.size()) list.add(new ArrayList<>());
+        return list.get(currentPage);
     }
 
     private void prevPage() {
@@ -247,8 +266,15 @@ public class StreamDeckApp extends JFrame {
     }
 
     private void nextPage() {
-        if (currentPage + 1 >= pages.size()) pages.add(new ArrayList<>());
+        List<List<ButtonConfig>> list = currentPageList();
+        if (currentPage + 1 >= list.size()) list.add(new ArrayList<>());
         currentPage++;
+        updateAllButtons();
+    }
+
+    private void leaveFolder() {
+        currentFolder = null;
+        currentPage = savedRootPage;
         updateAllButtons();
     }
 
@@ -266,7 +292,11 @@ public class StreamDeckApp extends JFrame {
         List<ButtonConfig> btns = currentPageBtns();
         int pageIdx = gridToPageIndex(gridIdx);
         if (pageIdx < 0) {
-            if (currentPage > 0) {
+            if (currentFolder != null && gridIdx == 10) {
+                btn.setText("\u2190");
+                btn.setToolTipText("Zur\u00fcck");
+                btn.setEnabled(true);
+            } else if (currentPage > 0) {
                 btn.setText("\u25C0");
                 btn.setToolTipText("Vorherige Seite");
                 btn.setEnabled(true);
@@ -285,7 +315,8 @@ public class StreamDeckApp extends JFrame {
             btn.setText("<html><center>" + cfg.getLabel().replace("\n", "<br>") + "</center></html>");
             btn.setToolTipText(cfg.getType() + ": " + cfg.getTarget());
             btn.setEnabled(true);
-            loadIconAsync(gridIdx, cfg.getType(), cfg.getTarget());
+            if (!"FOLDER".equals(cfg.getType()))
+                loadIconAsync(gridIdx, cfg.getType(), cfg.getTarget());
             if ("PROGRAM".equals(cfg.getType())) {
                 String appKey = extractAppName(cfg.getTarget()).toLowerCase();
                 btn.setBorder(isAppRunning(appKey) && !killedApps.contains(appKey)
@@ -303,7 +334,10 @@ public class StreamDeckApp extends JFrame {
     }
 
     private void updateAllButtons() {
-        setTitle("App Deck (Seite " + (currentPage + 1) + "/" + Math.max(1, pages.size()) + ")");
+        if (currentFolder != null)
+            setTitle("App Deck - " + currentFolder.getLabel() + " (Seite " + (currentPage + 1) + "/" + Math.max(1, currentFolder.getPages().size()) + ")");
+        else
+            setTitle("App Deck (Seite " + (currentPage + 1) + "/" + Math.max(1, pages.size()) + ")");
         for (int i = 0; i < ROWS * COLS; i++) updateButton(i);
     }
 
@@ -393,6 +427,19 @@ public class StreamDeckApp extends JFrame {
         editItem.addActionListener(ev -> editButton(pageIdx));
         popup.add(editItem);
 
+        JMenuItem folderItem = new JMenuItem("Ordner anlegen");
+        folderItem.addActionListener(ev -> {
+            List<ButtonConfig> btns = currentPageBtns();
+            ButtonConfig folderCfg = new ButtonConfig("Ordner", "FOLDER", "");
+            List<List<ButtonConfig>> folderPages = new ArrayList<>();
+            folderPages.add(new ArrayList<>());
+            folderCfg.setPages(folderPages);
+            while (pageIdx >= btns.size()) btns.add(null);
+            btns.set(pageIdx, folderCfg);
+            saveAndRefresh();
+        });
+        popup.add(folderItem);
+
         List<ButtonConfig> btns = currentPageBtns();
         if (pageIdx < btns.size() && btns.get(pageIdx) != null) {
             JMenuItem clearItem = new JMenuItem("Entfernen");
@@ -412,7 +459,7 @@ public class StreamDeckApp extends JFrame {
             ? btns.get(pageIdx) : new ButtonConfig("", "URL", "");
 
         JTextField labelField = new JTextField(cfg.getLabel(), 20);
-        JComboBox<String> typeBox = new JComboBox<>(new String[]{"URL", "PROGRAM"});
+        JComboBox<String> typeBox = new JComboBox<>(new String[]{"URL", "PROGRAM", "FOLDER"});
         typeBox.setSelectedItem(cfg.getType());
 
         JTextField targetField = new JTextField(cfg.getTarget(), 20);
@@ -420,6 +467,7 @@ public class StreamDeckApp extends JFrame {
             private void check() {
                 String text = targetField.getText().trim();
                 if (text.isEmpty()) return;
+                if ("FOLDER".equals(typeBox.getSelectedItem())) return;
                 if (text.startsWith("http://") || text.startsWith("https://")) {
                     typeBox.setSelectedItem("URL");
                     String suggested = suggestLabel(text);
@@ -444,6 +492,11 @@ public class StreamDeckApp extends JFrame {
             @Override public void insertUpdate(javax.swing.event.DocumentEvent e) { check(); }
             @Override public void removeUpdate(javax.swing.event.DocumentEvent e) { check(); }
             @Override public void changedUpdate(javax.swing.event.DocumentEvent e) { check(); }
+        });
+
+        typeBox.addActionListener(ev -> {
+            boolean isFolder = "FOLDER".equals(typeBox.getSelectedItem());
+            targetField.setEnabled(!isFolder);
         });
 
         JButton browseBtn = new JButton("...");
@@ -524,6 +577,15 @@ public class StreamDeckApp extends JFrame {
         if (result == JOptionPane.OK_OPTION) {
             ButtonConfig updated = new ButtonConfig(
                 labelField.getText(), (String) typeBox.getSelectedItem(), targetField.getText());
+            if ("FOLDER".equals(updated.getType())) {
+                if (cfg.getPages() != null)
+                    updated.setPages(cfg.getPages());
+                else {
+                    List<List<ButtonConfig>> folderPages = new ArrayList<>();
+                    folderPages.add(new ArrayList<>());
+                    updated.setPages(folderPages);
+                }
+            }
             while (pageIdx >= btns.size()) btns.add(null);
             btns.set(pageIdx, updated);
             saveAndRefresh();
@@ -572,6 +634,14 @@ public class StreamDeckApp extends JFrame {
     }
 
     private void execute(ButtonConfig cfg) {
+        if ("FOLDER".equals(cfg.getType())) {
+            if (currentFolder != null) return;
+            savedRootPage = currentPage;
+            currentPage = 0;
+            currentFolder = cfg;
+            updateAllButtons();
+            return;
+        }
         try {
             switch (cfg.getType().toUpperCase()) {
                 case "URL" -> Desktop.getDesktop().browse(URI.create(cfg.getTarget()));
