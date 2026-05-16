@@ -281,6 +281,7 @@ public class StreamDeckApp extends JFrame {
 
         ButtonConfig cfg = pageIdx < btns.size() ? btns.get(pageIdx) : null;
         if (cfg != null) {
+            btn.setIcon(null);
             btn.setText("<html><center>" + cfg.getLabel().replace("\n", "<br>") + "</center></html>");
             btn.setToolTipText(cfg.getType() + ": " + cfg.getTarget());
             btn.setEnabled(true);
