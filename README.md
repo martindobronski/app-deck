@@ -18,7 +18,7 @@ Ein Java-Swing-Programm, das wie ein Stream Deck funktioniert – mit konfigurie
 - **App-Icons** – werden automatisch aus .app-Bundles extrahiert (macOS)
 - **SVG-Favicons** – lokale `favicon.svg` im Verzeichnis wird als Icon verwendet
 - **3D-Optik** – abgerundete Ecken, Gradient, Schlagschatten
-- **Programm-Icon** – eigenes App-Icon (PNG + ICNS) mit 5×3-farbigem Raster als visueller Wiedererkennung
+- **Programm-Icon** – eigenes App-Icon (PNG + ICNS) mit 5×3-farbigem Raster als visueller Wiedererkennung (wird als Ressource im JAR mitgeliefert und als Dock-Icon via Taskbar gesetzt)
 
 ## Voraussetzungen
 
@@ -31,6 +31,15 @@ Ein Java-Swing-Programm, das wie ein Stream Deck funktioniert – mit konfigurie
 mvn package -q
 java -jar target/streamdeck-1.0-SNAPSHOT.jar [config.json]
 ```
+
+**macOS .app Bundle** (für korrekte Anzeige im Dock):
+
+```bash
+./build-app.sh
+open "App Deck.app"
+```
+
+Die Konfiguration wird beim ersten Start automatisch in `~/Library/Application Support/App Deck/config.json` angelegt.
 
 ## Icon
 

@@ -10,12 +10,13 @@ import java.awt.event.KeyEvent;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URI;
 import java.net.URL;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -23,16 +24,21 @@ import java.util.Set;
 
 public class StreamDeckApp extends JFrame {
 
+    static {
+        System.setProperty("apple.awt.application.name", "App Deck");
+    }
+
     private static final int COLS = 5;
     private static final int ROWS = 3;
     private static final int BUTTON_SIZE = 120;
     private static final int ICON_SIZE = 48;
-    private static final int DRAG_THRESHOLD = 10;
+    private static final int DRAG_THRESHOLD = 5;
 
     private final List<List<ButtonConfig>> pages;
     private final String configPath;
     private final JButton[] btnComponents = new JButton[ROWS * COLS];
-    private final Map<String, Icon> iconCache = new HashMap<>();
+    private final Map<String, Icon> iconCache = new ConcurrentHashMap<>();
+    private final JPanel gridPanel;
     private final JWindow dragGhost;
     private final javax.swing.Timer refreshTimer;
     private Set<String> runningApps = new HashSet<>();
@@ -41,6 +47,7 @@ public class StreamDeckApp extends JFrame {
     private Point dragStart;
     private int currentPage = 0;
     private boolean longPressHandled;
+    private boolean dragPerformed;
     private int longPressGridIdx = -1;
     private javax.swing.Timer longPressTimer;
     private final Set<String> killedApps = new HashSet<>();
@@ -50,10 +57,22 @@ public class StreamDeckApp extends JFrame {
         this.configPath = configPath;
 
         setDefaultCloseOperation(EXIT_ON_CLOSE);
-        ((JComponent) getContentPane()).setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
-        setLayout(new GridLayout(ROWS, COLS, 10, 10));
+        setTitle("App Deck");
+        setIconImage(loadAppIcon());
+        if (Taskbar.isTaskbarSupported()) {
+            Taskbar.getTaskbar().setIconImage(loadAppIcon());
+        }
 
-        setIconImage(createAppIcon());
+        gridPanel = new JPanel(new GridLayout(ROWS, COLS, 10, 10));
+        gridPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        gridPanel.setOpaque(false);
+        add(gridPanel, BorderLayout.CENTER);
+
+        JLabel versionLabel = new JLabel("V1.0 vom 16.05.26", SwingConstants.CENTER);
+        versionLabel.setFont(versionLabel.getFont().deriveFont(9f));
+        versionLabel.setForeground(new Color(150, 150, 150));
+        versionLabel.setBorder(BorderFactory.createEmptyBorder(0, 0, 6, 0));
+        add(versionLabel, BorderLayout.SOUTH);
 
         dragGhost = new JWindow();
         dragGhost.setAlwaysOnTop(true);
@@ -91,6 +110,7 @@ public class StreamDeckApp extends JFrame {
             } else {
                 btn.addActionListener(e -> {
                     if (longPressHandled) { longPressHandled = false; return; }
+                    if (dragPerformed) { dragPerformed = false; return; }
                     int pageIdx = gridToPageIndex(gridIdx);
                     if (pageIdx < 0) { prevPage(); return; }
                     List<ButtonConfig> btns = currentPageBtns();
@@ -107,6 +127,7 @@ public class StreamDeckApp extends JFrame {
                             dragSourceIndex = gridIdx;
                             dragStart = e.getPoint();
                             longPressHandled = false;
+                            dragPerformed = false;
                             longPressGridIdx = gridIdx;
                             List<ButtonConfig> btns = currentPageBtns();
                             if (pageIdx < btns.size() && btns.get(pageIdx) != null) {
@@ -138,19 +159,23 @@ public class StreamDeckApp extends JFrame {
                         if (longPressHandled) { longPressHandled = false; return; }
                         if (e.isPopupTrigger()) { showPopup(e, gridIdx); }
                         else if (dragSourceIndex >= 0 && dragStart != null) {
-                            if (e.getPoint().distance(dragStart) > DRAG_THRESHOLD)
+                            if (e.getPoint().distance(dragStart) > DRAG_THRESHOLD) {
+                                dragPerformed = true;
                                 handleDrop();
+                            }
                         }
                         dragSourceIndex = -1;
                         dragStart = null;
-                        setCursor(Cursor.getDefaultCursor());
+                        StreamDeckApp.this.setCursor(Cursor.getDefaultCursor());
                     }
                 });
                 btn.addMouseMotionListener(new java.awt.event.MouseMotionAdapter() {
                     @Override
                     public void mouseDragged(java.awt.event.MouseEvent e) {
                         if (dragSourceIndex < 0 || dragStart == null) return;
+                        StreamDeckApp.this.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
                         if (e.getPoint().distance(dragStart) <= DRAG_THRESHOLD) return;
+                        if (longPressTimer != null) { longPressTimer.stop(); longPressTimer = null; }
                         if (!dragGhost.isVisible()) {
                             BufferedImage img = new BufferedImage(btn.getWidth(), btn.getHeight(), BufferedImage.TYPE_INT_ARGB);
                             Graphics2D g = img.createGraphics();
@@ -164,17 +189,17 @@ public class StreamDeckApp extends JFrame {
                             Point sp = new Point();
                             SwingUtilities.convertPointToScreen(sp, btn);
                             dragGhost.setLocation(sp);
+                            dragGhost.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
                             dragGhost.setVisible(true);
                         }
                         Point sp = e.getLocationOnScreen();
                         dragGhost.setLocation(sp.x - dragGhost.getWidth() / 2, sp.y - dragGhost.getHeight() / 2);
-                        setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
                     }
                 });
             }
 
             btnComponents[i] = btn;
-            add(btn);
+            gridPanel.add(btn);
         }
 
         pack();
@@ -227,57 +252,58 @@ public class StreamDeckApp extends JFrame {
         updateAllButtons();
     }
 
-    private void updateAllButtons() {
-        setTitle("App Deck - Seite " + (currentPage + 1) + "/" + Math.max(1, pages.size()));
+    private void updateButton(int gridIdx) {
+        int row = gridIdx / COLS;
+        int col = gridIdx % COLS;
+        JButton btn = btnComponents[gridIdx];
+
+        if (row == ROWS - 1 && col == COLS - 1) {
+            btn.setEnabled(true);
+            btn.setIcon(null);
+            return;
+        }
+
         List<ButtonConfig> btns = currentPageBtns();
-
-        for (int i = 0; i < ROWS * COLS; i++) {
-            int row = i / COLS;
-            int col = i % COLS;
-            JButton btn = btnComponents[i];
-
-            if (row == ROWS - 1 && col == COLS - 1) {
+        int pageIdx = gridToPageIndex(gridIdx);
+        if (pageIdx < 0) {
+            if (currentPage > 0) {
+                btn.setText("\u25C0");
+                btn.setToolTipText("Vorherige Seite");
                 btn.setEnabled(true);
-                btn.setIcon(null);
-                continue;
-            }
-
-            int pageIdx = gridToPageIndex(i);
-            if (pageIdx < 0) {
-                if (currentPage > 0) {
-                    btn.setText("\u25C0");
-                    btn.setToolTipText("Vorherige Seite");
-                    btn.setEnabled(true);
-                } else {
-                    btn.setText("");
-                    btn.setToolTipText(null);
-                    btn.setEnabled(false);
-                }
-                btn.setIcon(null);
-                continue;
-            }
-
-            ButtonConfig cfg = pageIdx < btns.size() ? btns.get(pageIdx) : null;
-            if (cfg != null) {
-                btn.setText("<html><center>" + cfg.getLabel().replace("\n", "<br>") + "</center></html>");
-                btn.setToolTipText(cfg.getType() + ": " + cfg.getTarget());
-                btn.setEnabled(true);
-                btn.setIcon(resolveIcon(cfg.getType(), cfg.getTarget()));
-                if ("PROGRAM".equals(cfg.getType())) {
-                    String appKey = extractAppName(cfg.getTarget()).toLowerCase();
-                    btn.setBorder(isAppRunning(appKey) && !killedApps.contains(appKey)
-                        ? ROUNDED_BORDER_RUNNING : ROUNDED_BORDER);
-                } else {
-                    btn.setBorder(ROUNDED_BORDER);
-                }
             } else {
                 btn.setText("");
-                btn.setToolTipText("Unbelegt");
-                btn.setIcon(null);
-                btn.setEnabled(true);
-                btn.setBorder(null);
+                btn.setToolTipText(null);
+                btn.setEnabled(false);
             }
+            btn.setIcon(null);
+            return;
         }
+
+        ButtonConfig cfg = pageIdx < btns.size() ? btns.get(pageIdx) : null;
+        if (cfg != null) {
+            btn.setText("<html><center>" + cfg.getLabel().replace("\n", "<br>") + "</center></html>");
+            btn.setToolTipText(cfg.getType() + ": " + cfg.getTarget());
+            btn.setEnabled(true);
+            loadIconAsync(gridIdx, cfg.getType(), cfg.getTarget());
+            if ("PROGRAM".equals(cfg.getType())) {
+                String appKey = extractAppName(cfg.getTarget()).toLowerCase();
+                btn.setBorder(isAppRunning(appKey) && !killedApps.contains(appKey)
+                    ? ROUNDED_BORDER_RUNNING : ROUNDED_BORDER);
+            } else {
+                btn.setBorder(ROUNDED_BORDER);
+            }
+        } else {
+            btn.setText("");
+            btn.setToolTipText("Unbelegt");
+            btn.setIcon(null);
+            btn.setEnabled(true);
+            btn.setBorder(null);
+        }
+    }
+
+    private void updateAllButtons() {
+        setTitle("App Deck (Seite " + (currentPage + 1) + "/" + Math.max(1, pages.size()) + ")");
+        for (int i = 0; i < ROWS * COLS; i++) updateButton(i);
     }
 
     private void pollRunningApps() {
@@ -505,8 +531,8 @@ public class StreamDeckApp extends JFrame {
 
     private void handleDrop() {
         Point mousePos = MouseInfo.getPointerInfo().getLocation();
-        SwingUtilities.convertPointFromScreen(mousePos, this);
-        Component target = getContentPane().getComponentAt(mousePos);
+        SwingUtilities.convertPointFromScreen(mousePos, gridPanel);
+        Component target = gridPanel.getComponentAt(mousePos);
         int targetGrid = -1;
         for (int i = 0; i < btnComponents.length; i++) {
             if (btnComponents[i] == target) { targetGrid = i; break; }
@@ -523,7 +549,15 @@ public class StreamDeckApp extends JFrame {
         ButtonConfig temp = btns.get(srcIdx);
         btns.set(srcIdx, btns.get(tgtIdx));
         btns.set(tgtIdx, temp);
-        saveAndRefresh();
+
+        updateButton(dragSourceIndex);
+        updateButton(targetGrid);
+
+        try {
+            ConfigLoader.save(configPath, pages);
+        } catch (IOException ex) {
+            JOptionPane.showMessageDialog(this, "Fehler beim Speichern: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+        }
     }
 
     private void saveAndRefresh() {
@@ -561,6 +595,28 @@ public class StreamDeckApp extends JFrame {
         }
         if (!current.isEmpty()) args.add(current.toString());
         return args.toArray(new String[0]);
+    }
+
+    private void loadIconAsync(int gridIdx, String type, String target) {
+        String cacheKey = type + "::" + target;
+        Icon cached = iconCache.get(cacheKey);
+        if (cached != null) {
+            btnComponents[gridIdx].setIcon(cached);
+            return;
+        }
+        new Thread(() -> {
+            Icon icon = resolveIcon(type, target);
+            if (icon != null) {
+                SwingUtilities.invokeLater(() -> {
+                    List<ButtonConfig> btns = currentPageBtns();
+                    int pageIdx = gridToPageIndex(gridIdx);
+                    ButtonConfig cfg = pageIdx >= 0 && pageIdx < btns.size() ? btns.get(pageIdx) : null;
+                    String currentKey = cfg != null ? cfg.getType() + "::" + cfg.getTarget() : "";
+                    if (currentKey.equals(cacheKey))
+                        btnComponents[gridIdx].setIcon(icon);
+                });
+            }
+        }).start();
     }
 
     private Icon resolveIcon(String type, String target) {
@@ -603,7 +659,9 @@ public class StreamDeckApp extends JFrame {
             File[] icnsFiles = resources.listFiles((dir, name) -> name.endsWith(".icns"));
             if (icnsFiles == null || icnsFiles.length == 0) return null;
             File icnsFile = icnsFiles[0];
-            File pngFile = new File(System.getProperty("java.io.tmpdir"), "sd_icon_" + icnsFile.getName() + ".png");
+            String tag = Integer.toHexString(icnsFile.getAbsolutePath().hashCode());
+            File pngFile = new File(System.getProperty("java.io.tmpdir"),
+                "sd_icon_" + tag + "_" + icnsFile.getName() + ".png");
             ProcessBuilder pb = new ProcessBuilder("sips", "-s", "format", "png",
                 icnsFile.getAbsolutePath(), "--out", pngFile.getAbsolutePath());
             pb.redirectErrorStream(true);
@@ -623,8 +681,9 @@ public class StreamDeckApp extends JFrame {
         File svg = new File(dir, "favicon.svg");
         if (!svg.isFile()) return null;
         try {
+            String tag = Integer.toHexString(svg.getAbsolutePath().hashCode());
             File png = new File(System.getProperty("java.io.tmpdir"),
-                "sd_svg_" + svg.getName() + "_" + svg.lastModified() + ".png");
+                "sd_svg_" + tag + ".png");
             if (!png.isFile() || png.length() == 0) {
                 ProcessBuilder pb = new ProcessBuilder("sips", "-s", "format", "png",
                     "--resampleWidth", Integer.toString(ICON_SIZE * 2),
@@ -762,6 +821,14 @@ public class StreamDeckApp extends JFrame {
         public boolean isBorderOpaque() { return false; }
     }
 
+    private Image loadAppIcon() {
+        try {
+            InputStream is = getClass().getResourceAsStream("/streamdeck/app-icon.png");
+            if (is != null) return ImageIO.read(is);
+        } catch (Exception ignored) {}
+        return createAppIcon();
+    }
+
     private BufferedImage createAppIcon() {
         int s = 256;
         BufferedImage img = new BufferedImage(s, s, BufferedImage.TYPE_INT_ARGB);
@@ -799,12 +866,34 @@ public class StreamDeckApp extends JFrame {
 
     public static void main(String[] args) {
         String configPath = args.length > 0 ? args[0] : "config.json";
+
+        if (!new File(configPath).exists()) {
+            String homeCfg = System.getProperty("user.home")
+                + "/Library/Application Support/App Deck/config.json";
+            if (new File(homeCfg).exists()) {
+                configPath = homeCfg;
+            } else {
+                try {
+                    new File(homeCfg).getParentFile().mkdirs();
+                    ConfigLoader.save(homeCfg, List.of(new java.util.ArrayList<>()));
+                    configPath = homeCfg;
+                } catch (IOException e2) {
+                    JOptionPane.showMessageDialog(null,
+                        "Config not found: " + configPath
+                            + "\nCould not create default config.", "Error",
+                        JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
+            }
+        }
+
         List<List<ButtonConfig>> pages;
         try {
             pages = ConfigLoader.load(configPath);
         } catch (IOException e) {
             JOptionPane.showMessageDialog(null,
-                "Config not found: " + configPath + "\n" + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+                "Error loading config: " + configPath + "\n" + e.getMessage(),
+                "Error", JOptionPane.ERROR_MESSAGE);
             return;
         }
         String finalConfigPath = configPath;
