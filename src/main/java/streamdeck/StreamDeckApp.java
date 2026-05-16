@@ -282,8 +282,10 @@ public class StreamDeckApp extends JFrame {
         int row = gridIdx / COLS;
         int col = gridIdx % COLS;
         JButton btn = btnComponents[gridIdx];
+        btn.setFont(btn.getFont().deriveFont(Font.BOLD, 10f));
 
         if (row == ROWS - 1 && col == COLS - 1) {
+            btn.setFont(btn.getFont().deriveFont(28f));
             btn.setEnabled(true);
             btn.setIcon(null);
             return;
@@ -293,10 +295,12 @@ public class StreamDeckApp extends JFrame {
         int pageIdx = gridToPageIndex(gridIdx);
         if (pageIdx < 0) {
             if (currentFolder != null && gridIdx == 10) {
+                btn.setFont(btn.getFont().deriveFont(24f));
                 btn.setText("\u2190");
                 btn.setToolTipText("Zur\u00fcck");
                 btn.setEnabled(true);
             } else if (currentPage > 0) {
+                btn.setFont(btn.getFont().deriveFont(28f));
                 btn.setText("\u25C0");
                 btn.setToolTipText("Vorherige Seite");
                 btn.setEnabled(true);
