@@ -53,6 +53,8 @@ public class StreamDeckApp extends JFrame {
         ((JComponent) getContentPane()).setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
         setLayout(new GridLayout(ROWS, COLS, 10, 10));
 
+        setIconImage(createAppIcon());
+
         dragGhost = new JWindow();
         dragGhost.setAlwaysOnTop(true);
 
@@ -740,6 +742,41 @@ public class StreamDeckApp extends JFrame {
 
         @Override
         public boolean isBorderOpaque() { return false; }
+    }
+
+    private BufferedImage createAppIcon() {
+        int s = 256;
+        BufferedImage img = new BufferedImage(s, s, BufferedImage.TYPE_INT_ARGB);
+        Graphics2D g = img.createGraphics();
+        g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+
+        g.setColor(new Color(22, 22, 34));
+        g.fillRoundRect(8, 8, s - 16, s - 16, 40, 40);
+
+        int cols = 5, rows = 3, gap = 12;
+        int cw = (s - 16 - gap * (cols + 1)) / cols;
+        int ch = (s - 16 - gap * (rows + 1)) / rows;
+        int ox = 8 + gap, oy = 8 + gap;
+
+        int[][] colors = {
+            {0x4A90D9, 0x50C878, 0xE8A040, 0xD95959, 0x9B59B6},
+            {0x1ABC9C, 0xE67E22, 0x3498DB, 0xE74C3C, 0x2ECC71},
+            {0xF39C12, 0x2980B9, 0x8E44AD, 0x27AE60, 0xD35400}
+        };
+
+        for (int r = 0; r < rows; r++) {
+            for (int c = 0; c < cols; c++) {
+                int x = ox + c * (cw + gap);
+                int y = oy + r * (ch + gap);
+                Color base = new Color(colors[r][c]);
+                GradientPaint gp = new GradientPaint(x, y, base.brighter(), x, y + ch, base.darker());
+                g.setPaint(gp);
+                g.fillRoundRect(x, y, cw, ch, 8, 8);
+            }
+        }
+
+        g.dispose();
+        return img;
     }
 
     public static void main(String[] args) {

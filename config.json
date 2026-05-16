@@ -1,9 +1,9 @@
 [
   [
     {
-      "label": "GitHub",
+      "label": "Maps",
       "type": "URL",
-      "target": "https://github.com"
+      "target": "https://maps.google.com"
     },
     {
       "label": "Calendar",
@@ -46,9 +46,9 @@
       "target": "open \"/Applications/Obsidian.app\""
     },
     {
-      "label": "Maps",
+      "label": "GitHub",
       "type": "URL",
-      "target": "https://maps.google.com"
+      "target": "https://github.com"
     },
     {
       "label": "Brave Browser",
