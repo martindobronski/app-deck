@@ -36,6 +36,7 @@ public class StreamDeckApp extends JFrame {
     private final JWindow dragGhost;
     private final javax.swing.Timer refreshTimer;
     private Set<String> runningApps = new HashSet<>();
+    private Set<String> runningCmdLines = new HashSet<>();
     private int dragSourceIndex = -1;
     private Point dragStart;
     private int currentPage = 0;
@@ -109,7 +110,7 @@ public class StreamDeckApp extends JFrame {
                             if (pageIdx < btns.size() && btns.get(pageIdx) != null) {
                                 ButtonConfig cfg = btns.get(pageIdx);
                                 if ("PROGRAM".equals(cfg.getType())
-                                    && runningApps.contains(extractAppName(cfg.getTarget()).toLowerCase())) {
+                                    && isAppRunning(extractAppName(cfg.getTarget()).toLowerCase())) {
                                     longPressTimer = new javax.swing.Timer(800, ev -> {
                                         if (longPressGridIdx == gridIdx) {
                                             killApp(cfg.getTarget());
@@ -262,7 +263,7 @@ public class StreamDeckApp extends JFrame {
                 btn.setIcon(resolveIcon(cfg.getType(), cfg.getTarget()));
                 if ("PROGRAM".equals(cfg.getType())) {
                     String appKey = extractAppName(cfg.getTarget()).toLowerCase();
-                    btn.setBorder(runningApps.contains(appKey) && !killedApps.contains(appKey)
+                    btn.setBorder(isAppRunning(appKey) && !killedApps.contains(appKey)
                         ? ROUNDED_BORDER_RUNNING : ROUNDED_BORDER);
                 } else {
                     btn.setBorder(ROUNDED_BORDER);
@@ -294,8 +295,26 @@ public class StreamDeckApp extends JFrame {
             }
             p.waitFor(3, java.util.concurrent.TimeUnit.SECONDS);
         } catch (Exception ignored) {}
+
+        Set<String> cmds = new HashSet<>();
+        try {
+            Process p = Runtime.getRuntime().exec(new String[]{"ps", "-ef"});
+            BufferedReader r = new BufferedReader(new InputStreamReader(p.getInputStream()));
+            String line;
+            while ((line = r.readLine()) != null) {
+                cmds.add(line.toLowerCase());
+            }
+            p.waitFor(3, java.util.concurrent.TimeUnit.SECONDS);
+        } catch (Exception ignored) {}
+
         runningApps = apps;
-        killedApps.removeIf(k -> !runningApps.contains(k));
+        runningCmdLines = cmds;
+        killedApps.removeIf(k -> !isAppRunning(k));
+    }
+
+    private boolean isAppRunning(String appKey) {
+        if (runningApps.contains(appKey)) return true;
+        return runningCmdLines.stream().anyMatch(cl -> cl.contains(appKey));
     }
 
     private void updateRunningIndicators() {
@@ -309,7 +328,7 @@ public class StreamDeckApp extends JFrame {
 
             JButton btn = btnComponents[i];
             String appKey = extractAppName(cfg.getTarget()).toLowerCase();
-            btn.setBorder(runningApps.contains(appKey) && !killedApps.contains(appKey)
+            btn.setBorder(isAppRunning(appKey) && !killedApps.contains(appKey)
                 ? ROUNDED_BORDER_RUNNING : ROUNDED_BORDER);
         }
     }

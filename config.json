@@ -16,9 +16,9 @@
       "target": "open -a Terminal"
     },
     {
-      "label": "VS Code",
+      "label": "Visual Studio Code",
       "type": "PROGRAM",
-      "target": "open -a Visual\\ Studio\\ Code"
+      "target": "open \"/Applications/Visual Studio Code.app\""
     },
     {
       "label": "Drive",
