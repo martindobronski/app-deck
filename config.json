@@ -1,0 +1,94 @@
+[
+  [
+    {
+      "label": "GitHub",
+      "type": "URL",
+      "target": "https://github.com"
+    },
+    {
+      "label": "Calendar",
+      "type": "URL",
+      "target": "https://calendar.google.com"
+    },
+    {
+      "label": "Terminal",
+      "type": "PROGRAM",
+      "target": "open -a Terminal"
+    },
+    {
+      "label": "VS Code",
+      "type": "PROGRAM",
+      "target": "open -a Visual\\ Studio\\ Code"
+    },
+    {
+      "label": "Drive",
+      "type": "URL",
+      "target": "https://drive.google.com"
+    },
+    {
+      "label": "Gmail",
+      "type": "URL",
+      "target": "https://mail.google.com"
+    },
+    {
+      "label": "YouTube",
+      "type": "URL",
+      "target": "https://youtube.com"
+    },
+    {
+      "label": "Browser",
+      "type": "PROGRAM",
+      "target": "open -a Safari"
+    },
+    {
+      "label": "Obsidian",
+      "type": "PROGRAM",
+      "target": "open \"/Applications/Obsidian.app\""
+    },
+    {
+      "label": "Maps",
+      "type": "URL",
+      "target": "https://maps.google.com"
+    },
+    {
+      "label": "Brave Browser",
+      "type": "PROGRAM",
+      "target": "open \"/Applications/Brave Browser.app\""
+    },
+    {
+      "label": "Telegram",
+      "type": "PROGRAM",
+      "target": "open \"/Applications/Telegram.app\""
+    },
+    {
+      "label": "WhatsApp",
+      "type": "PROGRAM",
+      "target": "open \"/Applications/WhatsApp.app\""
+    },
+    {
+      "label": "Double Commander",
+      "type": "PROGRAM",
+      "target": "open \"/Applications/Double Commander.app\""
+    }
+  ],
+  [
+    {
+      "label": "Notes",
+      "type": "PROGRAM",
+      "target": "open -a Notes"
+    },
+    {
+      "label": "Settings",
+      "type": "PROGRAM",
+      "target": "open -a System\\ Settings"
+    },
+    null,
+    null,
+    null,
+    {
+      "label": "Amazon Kindle",
+      "type": "PROGRAM",
+      "target": "open \"/Applications/Amazon Kindle.app\""
+    }
+  ]
+]
