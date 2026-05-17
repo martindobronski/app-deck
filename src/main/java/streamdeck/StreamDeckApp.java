@@ -143,6 +143,7 @@ public class StreamDeckApp extends JFrame {
                         g2.fillRoundRect(0, 0, getWidth() - 1, getHeight() - 1, 14, 14);
                         g2.dispose();
                         super.paintComponent(g);
+                        if (isFocusOwner()) drawFocusRing(g, getWidth(), getHeight());
                         return;
                     }
                     boolean pressed = getModel().isPressed();
@@ -158,6 +159,7 @@ public class StreamDeckApp extends JFrame {
                     g2.fillRoundRect(0, 0, getWidth() - 1, getHeight() - 1, 14, 14);
                     g2.dispose();
                     super.paintComponent(g);
+                    if (isFocusOwner()) drawFocusRing(g, getWidth(), getHeight());
                 }
             };
             btn.addMouseListener(new java.awt.event.MouseAdapter() {
@@ -309,6 +311,29 @@ public class StreamDeckApp extends JFrame {
             if ((e.isMetaDown() || e.isControlDown()) && e.getKeyCode() == KeyEvent.VK_F) {
                 showSearchDialog("");
                 return true;
+            }
+            if (!e.isMetaDown() && !e.isControlDown() && !e.isAltDown()) {
+                Component focusOwner = KeyboardFocusManager.getCurrentKeyboardFocusManager().getFocusOwner();
+                int cur = -1;
+                for (int i = 0; i < btnComponents.length; i++) {
+                    if (btnComponents[i] == focusOwner) { cur = i; break; }
+                }
+                if (cur >= 0) {
+                    int row = cur / COLS;
+                    int col = cur % COLS;
+                    int target = -1;
+                    switch (e.getKeyCode()) {
+                        case KeyEvent.VK_LEFT:  if (col > 0) target = cur - 1; break;
+                        case KeyEvent.VK_RIGHT: if (col < COLS - 1) target = cur + 1; break;
+                        case KeyEvent.VK_UP:    if (row > 0) target = cur - COLS; break;
+                        case KeyEvent.VK_DOWN:  if (row < ROWS - 1) target = cur + COLS; break;
+                        case KeyEvent.VK_ENTER: btnComponents[cur].doClick(); return true;
+                    }
+                    if (target >= 0) {
+                        btnComponents[target].requestFocusInWindow();
+                        return true;
+                    }
+                }
             }
             return false;
         };
@@ -1312,6 +1337,15 @@ public class StreamDeckApp extends JFrame {
 
         g.dispose();
         return img;
+    }
+
+    private void drawFocusRing(Graphics g, int w, int h) {
+        Graphics2D g2 = (Graphics2D) g.create();
+        g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        g2.setColor(new Color(80, 140, 230, 180));
+        g2.setStroke(new BasicStroke(2.5f));
+        g2.drawRoundRect(3, 3, w - 7, h - 7, 12, 12);
+        g2.dispose();
     }
 
     private static class RoundedShadowBorder extends AbstractBorder {
