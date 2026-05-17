@@ -146,17 +146,27 @@ public class StreamDeckApp extends JFrame {
 
         gridPanel = new JPanel(new GridLayout(ROWS, COLS, 10, 10));
         gridPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
-        gridPanel.setOpaque(true);
-        gridPanel.setBackground(new Color(50, 50, 55));
-        getContentPane().setBackground(new Color(50, 50, 55));
-        add(gridPanel, BorderLayout.CENTER);
+        gridPanel.setOpaque(false);
+        JPanel bg = new JPanel() {
+            @Override
+            protected void paintComponent(Graphics g) {
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setPaint(new GradientPaint(0, 0, new Color(35, 35, 40), 0, getHeight(), new Color(50, 50, 55)));
+                g2.fillRect(0, 0, getWidth(), getHeight());
+                g2.dispose();
+                super.paintComponent(g);
+            }
+        };
+        bg.setLayout(new BorderLayout());
+        bg.add(gridPanel, BorderLayout.CENTER);
+        add(bg, BorderLayout.CENTER);
 
         JLabel versionLabel = new JLabel("V1.0 vom 16.05.26", SwingConstants.CENTER);
         versionLabel.setFont(versionLabel.getFont().deriveFont(9f));
         versionLabel.setForeground(new Color(150, 150, 150));
         versionLabel.setBackground(new Color(50, 50, 55));
-        versionLabel.setOpaque(true);
-        versionLabel.setBorder(BorderFactory.createEmptyBorder(0, 0, 6, 0));
+        versionLabel.setOpaque(false);
+        versionLabel.setBorder(BorderFactory.createEmptyBorder(6, 0, 6, 0));
         add(versionLabel, BorderLayout.SOUTH);
 
         dragGhost = new JWindow();
@@ -230,7 +240,7 @@ public class StreamDeckApp extends JFrame {
                 }
             });
             btn.setPreferredSize(new Dimension(BUTTON_SIZE, BUTTON_SIZE));
-            btn.setFont(btn.getFont().deriveFont(Font.BOLD, 10f));
+            btn.setFont(btn.getFont().deriveFont(Font.BOLD, 12f));
             btn.setForeground(Color.BLACK);
             btn.setVerticalTextPosition(SwingConstants.BOTTOM);
             btn.setHorizontalTextPosition(SwingConstants.CENTER);
@@ -459,7 +469,7 @@ public class StreamDeckApp extends JFrame {
         int row = gridIdx / COLS;
         int col = gridIdx % COLS;
         JButton btn = btnComponents[gridIdx];
-        btn.setFont(btn.getFont().deriveFont(Font.BOLD, 10f));
+        btn.setFont(btn.getFont().deriveFont(Font.BOLD, 12f));
 
         if (row == ROWS - 1 && col == COLS - 1) {
             btn.setFont(btn.getFont().deriveFont(28f));
