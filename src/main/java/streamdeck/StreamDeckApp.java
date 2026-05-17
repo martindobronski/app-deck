@@ -67,6 +67,43 @@ public class StreamDeckApp extends JFrame {
             Taskbar.getTaskbar().setIconImage(loadAppIcon());
         }
 
+        JMenuBar menuBar = new JMenuBar();
+        JMenu appMenu = new JMenu("App Desk");
+        JMenuItem aboutItem = new JMenuItem("Über App Desk");
+        aboutItem.addActionListener(e -> JOptionPane.showMessageDialog(this,
+            "App Desk V1.0\nEin Stream-Deck-artiger Schaltflächenstarter für macOS.\n\nErstellt am 16.05.26",
+            "Über App Desk", JOptionPane.INFORMATION_MESSAGE));
+        appMenu.add(aboutItem);
+        appMenu.addSeparator();
+        JMenuItem exitItem = new JMenuItem("App Desk beenden");
+        exitItem.addActionListener(e -> System.exit(0));
+        appMenu.add(exitItem);
+        menuBar.add(Box.createHorizontalStrut(6));
+        menuBar.add(appMenu);
+        menuBar.add(Box.createHorizontalGlue());
+        JMenu helpMenu = new JMenu("Hilfe");
+        JMenuItem docsItem = new JMenuItem("Dokumentation anzeigen");
+        docsItem.addActionListener(e -> {
+            try {
+                File pdf = new File("Dokumentation.pdf");
+                if (pdf.exists()) {
+                    Desktop.getDesktop().open(pdf);
+                } else {
+                    JOptionPane.showMessageDialog(this,
+                        "Dokumentation.pdf nicht gefunden.",
+                        "Hilfe", JOptionPane.WARNING_MESSAGE);
+                }
+            } catch (Exception ex) {
+                JOptionPane.showMessageDialog(this,
+                    "Fehler beim Offnen: " + ex.getMessage(),
+                    "Fehler", JOptionPane.ERROR_MESSAGE);
+            }
+        });
+        helpMenu.add(docsItem);
+        menuBar.add(helpMenu);
+        menuBar.add(Box.createHorizontalStrut(6));
+        setJMenuBar(menuBar);
+
         gridPanel = new JPanel(new GridLayout(ROWS, COLS, 10, 10));
         gridPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
         gridPanel.setOpaque(true);
