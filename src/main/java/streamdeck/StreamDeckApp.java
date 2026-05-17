@@ -143,7 +143,6 @@ public class StreamDeckApp extends JFrame {
                         g2.fillRoundRect(0, 0, getWidth() - 1, getHeight() - 1, 14, 14);
                         g2.dispose();
                         super.paintComponent(g);
-                        if (isFocusOwner()) drawFocusRing(g, getWidth(), getHeight());
                         return;
                     }
                     boolean pressed = getModel().isPressed();
@@ -159,6 +158,10 @@ public class StreamDeckApp extends JFrame {
                     g2.fillRoundRect(0, 0, getWidth() - 1, getHeight() - 1, 14, 14);
                     g2.dispose();
                     super.paintComponent(g);
+                }
+                @Override
+                public void paint(Graphics g) {
+                    super.paint(g);
                     if (isFocusOwner()) drawFocusRing(g, getWidth(), getHeight());
                 }
             };
@@ -1016,6 +1019,7 @@ public class StreamDeckApp extends JFrame {
         int gridIdx = pageToGridIndex(pageIdx);
         if (gridIdx >= 0) {
             JButton btn = btnComponents[gridIdx];
+            btn.requestFocusInWindow();
             Border origBorder = btn.getBorder();
             Border yellowBorder = BorderFactory.createLineBorder(new Color(255, 200, 0), 4);
             final boolean[] visible = {true};
@@ -1342,9 +1346,9 @@ public class StreamDeckApp extends JFrame {
     private void drawFocusRing(Graphics g, int w, int h) {
         Graphics2D g2 = (Graphics2D) g.create();
         g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-        g2.setColor(new Color(80, 140, 230, 180));
-        g2.setStroke(new BasicStroke(2.5f));
-        g2.drawRoundRect(3, 3, w - 7, h - 7, 12, 12);
+        g2.setColor(new Color(255, 200, 0));
+        g2.setStroke(new BasicStroke(4f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_ROUND, 0, new float[]{8, 6}, 0));
+        g2.drawRoundRect(1, 1, w - 3, h - 3, 14, 14);
         g2.dispose();
     }
 
