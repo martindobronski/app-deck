@@ -8,6 +8,9 @@ public class ButtonConfig {
     private String type;
     private String target;
     private List<List<ButtonConfig>> pages;
+    private boolean check;
+    private String latestVideoId;
+    private boolean hasNew;
 
     public ButtonConfig() {}
 
@@ -21,9 +24,15 @@ public class ButtonConfig {
     public String getType() { return type; }
     public String getTarget() { return target; }
     public List<List<ButtonConfig>> getPages() { return pages; }
+    public boolean isCheck() { return check; }
+    public String getLatestVideoId() { return latestVideoId; }
+    public boolean isHasNew() { return hasNew; }
 
     public void setLabel(String label) { this.label = label; }
     public void setType(String type) { this.type = type; }
     public void setTarget(String target) { this.target = target; }
     public void setPages(List<List<ButtonConfig>> pages) { this.pages = pages; }
+    public void setCheck(boolean check) { this.check = check; }
+    public void setLatestVideoId(String latestVideoId) { this.latestVideoId = latestVideoId; }
+    public void setHasNew(boolean hasNew) { this.hasNew = hasNew; }
 }

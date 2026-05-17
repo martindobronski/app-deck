@@ -22,6 +22,9 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 public class StreamDeckApp extends JFrame {
 
@@ -35,6 +38,7 @@ public class StreamDeckApp extends JFrame {
     private static final int BOTTOM_ROW_START = (ROWS - 1) * COLS;
     private static final int ICON_SIZE = 48;
     private static final int DRAG_THRESHOLD = 5;
+    private static final int CHECK_INTERVAL_MINUTES = 5;
 
     private final List<List<ButtonConfig>> pages;
     private final String configPath;
@@ -56,12 +60,21 @@ public class StreamDeckApp extends JFrame {
     private ButtonConfig currentFolder;
     private int savedRootPage;
     private boolean searchDialogOpen;
+    private boolean browseDialogOpen;
     private java.awt.KeyEventDispatcher searchKeyDispatcher;
+    private final File logDir;
+    private final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor(r -> {
+        Thread t = new Thread(r, "video-check");
+        t.setDaemon(true);
+        return t;
+    });
 
     public StreamDeckApp(List<List<ButtonConfig>> pages, String configPath) {
         this.pages = pages;
         this.configPath = configPath;
+        this.logDir = new File(configPath).getParentFile();
 
+        log("=== App Desk gestartet ===");
         setDefaultCloseOperation(EXIT_ON_CLOSE);
         setTitle("App Deck");
         setIconImage(loadAppIcon());
@@ -80,6 +93,27 @@ public class StreamDeckApp extends JFrame {
         JMenuItem searchItem = new JMenuItem("Suche mit Strg + F");
         searchItem.addActionListener(e -> showSearchDialog(""));
         appMenu.add(searchItem);
+        appMenu.addSeparator();
+        JMenuItem checkItem = new JMenuItem("Auf neue YouTube-Videos prüfen");
+        checkItem.addActionListener(e -> {
+            setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
+            scheduler.submit(() -> {
+                int count = checkAllUrls();
+                SwingUtilities.invokeLater(() -> {
+                    setCursor(Cursor.getDefaultCursor());
+                    String msg = count > 0 ? count + " neue Videos gefunden." : "Keine neuen Videos.";
+                    JDialog d = new JDialog(this, "Video-Check", false);
+                    d.add(new JLabel(msg, SwingConstants.CENTER));
+                    d.setSize(260, 80);
+                    d.setLocationRelativeTo(this);
+                    d.setVisible(true);
+                    javax.swing.Timer t = new javax.swing.Timer(3000, ev -> d.dispose());
+                    t.setRepeats(false);
+                    t.start();
+                });
+            });
+        });
+        appMenu.add(checkItem);
         appMenu.addSeparator();
         JMenuItem exitItem = new JMenuItem("App Desk beenden");
         exitItem.addActionListener(e -> System.exit(0));
@@ -163,6 +197,24 @@ public class StreamDeckApp extends JFrame {
                 public void paint(Graphics g) {
                     super.paint(g);
                     if (isFocusOwner()) drawFocusRing(g, getWidth(), getHeight());
+                    if (Boolean.TRUE.equals(getClientProperty("hasNew"))) {
+                        Graphics2D g2 = (Graphics2D) g.create();
+                        g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                        Font orig = g2.getFont();
+                        g2.setFont(orig.deriveFont(Font.BOLD, 11f));
+                        String badge = "neu";
+                        FontMetrics fm = g2.getFontMetrics();
+                        int bw = fm.stringWidth(badge) + 10;
+                        int bh = fm.getHeight();
+                        int bx = getWidth() - bw - 4;
+                        int by = 4;
+                        g2.setColor(new Color(220, 50, 50));
+                        g2.fillRoundRect(bx, by, bw, bh, 8, 8);
+                        g2.setColor(Color.WHITE);
+                        g2.drawString(badge, bx + 5, by + fm.getAscent());
+                        g2.setFont(orig);
+                        g2.dispose();
+                    }
                 }
             };
             btn.addMouseListener(new java.awt.event.MouseAdapter() {
@@ -291,11 +343,14 @@ public class StreamDeckApp extends JFrame {
         setLocationRelativeTo(null);
         setResizable(false);
         updateAllButtons();
+        startVideoChecker();
 
         addWindowListener(new java.awt.event.WindowAdapter() {
             @Override
             public void windowClosing(java.awt.event.WindowEvent e) {
+                log("=== App Desk beendet ===");
                 if (refreshTimer != null) refreshTimer.stop();
+                scheduler.shutdown();
                 if (searchKeyDispatcher != null)
                     KeyboardFocusManager.getCurrentKeyboardFocusManager().removeKeyEventDispatcher(searchKeyDispatcher);
             }
@@ -304,9 +359,12 @@ public class StreamDeckApp extends JFrame {
         searchKeyDispatcher = e -> {
             if (e.getID() == KeyEvent.KEY_TYPED) {
                 char c = e.getKeyChar();
-                if (!Character.isISOControl(c) && !e.isMetaDown() && !e.isControlDown() && !e.isAltDown() && !searchDialogOpen) {
-                    showSearchDialog(String.valueOf(c));
-                    return true;
+                if (!Character.isISOControl(c) && !e.isMetaDown() && !e.isControlDown() && !e.isAltDown() && !searchDialogOpen && !browseDialogOpen) {
+                    Component focusOwner = KeyboardFocusManager.getCurrentKeyboardFocusManager().getFocusOwner();
+                    if (!(focusOwner instanceof javax.swing.text.JTextComponent)) {
+                        showSearchDialog(String.valueOf(c));
+                        return true;
+                    }
                 }
                 return false;
             }
@@ -316,6 +374,10 @@ public class StreamDeckApp extends JFrame {
                 return true;
             }
             if (!e.isMetaDown() && !e.isControlDown() && !e.isAltDown()) {
+                if (e.getKeyCode() == KeyEvent.VK_ESCAPE && !searchDialogOpen) {
+                    if (currentFolder != null) { leaveFolder(); return true; }
+                    if (currentPage > 0) { prevPage(); return true; }
+                }
                 Component focusOwner = KeyboardFocusManager.getCurrentKeyboardFocusManager().getFocusOwner();
                 int cur = -1;
                 for (int i = 0; i < btnComponents.length; i++) {
@@ -445,6 +507,18 @@ public class StreamDeckApp extends JFrame {
             } else {
                 btn.setBorder(ROUNDED_BORDER);
             }
+            if ("FOLDER".equals(cfg.getType()) && cfg.getPages() != null) {
+                boolean folderNew = false;
+                for (List<ButtonConfig> page : cfg.getPages()) {
+                    for (ButtonConfig child : page) {
+                        if (child != null && child.isHasNew()) { folderNew = true; break; }
+                    }
+                    if (folderNew) break;
+                }
+                btn.putClientProperty("hasNew", folderNew);
+            } else {
+                btn.putClientProperty("hasNew", cfg.isHasNew());
+            }
         } else {
             btn.setText("");
             btn.setToolTipText(null);
@@ -453,6 +527,7 @@ public class StreamDeckApp extends JFrame {
             btn.setBorder(null);
             btn.putClientProperty("empty", true);
             btn.putClientProperty("hovered", false);
+            btn.putClientProperty("hasNew", false);
         }
     }
 
@@ -582,7 +657,7 @@ public class StreamDeckApp extends JFrame {
             ? btns.get(pageIdx) : new ButtonConfig("", "URL", "");
 
         JTextField labelField = new JTextField(cfg.getLabel(), 20);
-        JComboBox<String> typeBox = new JComboBox<>(new String[]{"URL", "PROGRAM", "FOLDER", "COPY"});
+        JComboBox<String> typeBox = new JComboBox<>(new String[]{"URL", "PROGRAM", "FILE", "FOLDER", "COPY"});
         typeBox.setSelectedItem(cfg.getType());
 
         JTextArea targetArea = new JTextArea(cfg.getTarget(), 2, 20);
@@ -593,14 +668,22 @@ public class StreamDeckApp extends JFrame {
                 String text = targetArea.getText().trim();
                 if (text.isEmpty()) return;
                 if ("FOLDER".equals(typeBox.getSelectedItem()) || "COPY".equals(typeBox.getSelectedItem())) return;
+                File textFile = new File(text);
+                if (textFile.isFile() || textFile.isDirectory()) {
+                    typeBox.setSelectedItem("FILE");
+                    labelField.setText(textFile.getName());
+                    return;
+                }
                 if (text.startsWith("http://") || text.startsWith("https://")) {
                     typeBox.setSelectedItem("URL");
                     String suggested = suggestLabel(text);
                     if (suggested != null) labelField.setText(suggested);
                 } else if (text.startsWith("file://")) {
-                    typeBox.setSelectedItem("URL");
-                    String suggested = suggestLabel(text);
-                    if (suggested != null) labelField.setText(suggested);
+                    String plainPath = text.substring(text.startsWith("file:///") ? 7 : 6);
+                    File f = new File(plainPath);
+                    typeBox.setSelectedItem("FILE");
+                    targetArea.setText(plainPath);
+                    labelField.setText(f.getName());
                 } else if (text.startsWith("open -a ")) {
                     typeBox.setSelectedItem("PROGRAM");
                     String name = text.substring(8).trim().replace("\\ ", " ");
@@ -654,13 +737,18 @@ public class StreamDeckApp extends JFrame {
                 return true;
             };
             KeyboardFocusManager.getCurrentKeyboardFocusManager().addKeyEventDispatcher(ked);
+            browseDialogOpen = true;
             int result = fc.showOpenDialog(this);
+            browseDialogOpen = false;
             KeyboardFocusManager.getCurrentKeyboardFocusManager().removeKeyEventDispatcher(ked);
             if (result == JFileChooser.APPROVE_OPTION) {
                 String path = fc.getSelectedFile().getAbsolutePath();
                 if (path.endsWith(".app")) {
                     typeBox.setSelectedItem("PROGRAM");
                     targetArea.setText("open \"" + path + "\"");
+                } else if (new File(path).isFile() || new File(path).isDirectory()) {
+                    typeBox.setSelectedItem("FILE");
+                    targetArea.setText(path);
                 } else {
                     typeBox.setSelectedItem("URL");
                     targetArea.setText("file://" + path);
@@ -668,13 +756,18 @@ public class StreamDeckApp extends JFrame {
             }
         });
 
+        JCheckBox videoCheckBox = new JCheckBox("Auf neue Videos prüfen", cfg.isCheck());
+        videoCheckBox.setVisible("URL".equals(cfg.getType()));
+
         typeBox.addActionListener(ev -> {
             boolean isFolder = "FOLDER".equals(typeBox.getSelectedItem());
             boolean isCopy = "COPY".equals(typeBox.getSelectedItem());
+            boolean isUrl = "URL".equals(typeBox.getSelectedItem());
             targetArea.setEnabled(!isFolder);
             targetArea.setRows(isCopy ? 5 : 2);
             browseBtn.setVisible(!isFolder && !isCopy);
             targetScroll.setPreferredSize(new Dimension(200, isCopy ? 90 : 40));
+            videoCheckBox.setVisible(isUrl);
         });
 
         JPanel targetPanel = new JPanel(new BorderLayout(4, 0));
@@ -703,6 +796,10 @@ public class StreamDeckApp extends JFrame {
         gbc.gridx = 1;
         panel.add(targetPanel, gbc);
 
+        gbc.gridx = 0; gbc.gridy = 3;
+        gbc.gridwidth = 2;
+        panel.add(videoCheckBox, gbc);
+
         int result = JOptionPane.showConfirmDialog(this, panel,
             "Button konfigurieren", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
 
@@ -718,6 +815,7 @@ public class StreamDeckApp extends JFrame {
                     updated.setPages(folderPages);
                 }
             }
+            updated.setCheck(videoCheckBox.isSelected());
             while (pageIdx >= btns.size()) btns.add(null);
             btns.set(pageIdx, updated);
             saveAndRefresh();
@@ -746,22 +844,42 @@ public class StreamDeckApp extends JFrame {
             if (targetGrid == BOTTOM_ROW_START) {
                 int targetPage = currentPage - 1;
                 List<List<ButtonConfig>> targetList = currentPageList();
+                boolean leavingFolder = false;
                 if (targetPage < 0) {
                     if (currentFolder == null) return;
                     targetPage = savedRootPage;
                     targetList = pages;
+                    leavingFolder = true;
                 }
-                btns.set(srcIdx, null);
                 while (targetPage >= targetList.size()) targetList.add(new ArrayList<>());
                 List<ButtonConfig> prevBtns = targetList.get(targetPage);
-                int emptyIdx = -1;
-                for (int i = 0; i < prevBtns.size(); i++) {
-                    if (prevBtns.get(i) == null) { emptyIdx = i; break; }
+                boolean targetIsRootPage0 = (leavingFolder || currentFolder == null) && targetPage == 0;
+                if (pageIsFull(prevBtns, targetIsRootPage0)) {
+                    JOptionPane.showMessageDialog(this, "Die Zielseite ist bereits voll.", "Seite voll", JOptionPane.WARNING_MESSAGE);
+                    return;
                 }
+                btns.set(srcIdx, null);
+                int emptyIdx = findEmptySlot(prevBtns);
                 if (emptyIdx >= 0) prevBtns.set(emptyIdx, sourceCfg);
                 else prevBtns.add(sourceCfg);
                 try { ConfigLoader.save(configPath, pages); } catch (IOException ex) {}
                 if (currentPage == 0 && currentFolder != null) { leaveFolder(); return; }
+                iconCache.clear();
+                updateAllButtons();
+            } else if (targetGrid == COLS * ROWS - 1) {
+                int targetPage = currentPage + 1;
+                List<List<ButtonConfig>> targetList = currentPageList();
+                while (targetPage >= targetList.size()) targetList.add(new ArrayList<>());
+                List<ButtonConfig> nextBtns = targetList.get(targetPage);
+                if (pageIsFull(nextBtns, false)) {
+                    JOptionPane.showMessageDialog(this, "Die Zielseite ist bereits voll.", "Seite voll", JOptionPane.WARNING_MESSAGE);
+                    return;
+                }
+                btns.set(srcIdx, null);
+                int emptyIdx = findEmptySlot(nextBtns);
+                if (emptyIdx >= 0) nextBtns.set(emptyIdx, sourceCfg);
+                else nextBtns.add(sourceCfg);
+                try { ConfigLoader.save(configPath, pages); } catch (IOException ex) {}
                 iconCache.clear();
                 updateAllButtons();
             }
@@ -805,6 +923,23 @@ public class StreamDeckApp extends JFrame {
         }
     }
 
+    private int findEmptySlot(List<ButtonConfig> btns) {
+        for (int i = 0; i < btns.size(); i++) {
+            if (btns.get(i) == null) return i;
+        }
+        return -1;
+    }
+
+    private boolean pageIsFull(List<ButtonConfig> btns, boolean noNavLeft) {
+        int maxSlots = COLS * ROWS - 2;
+        if (noNavLeft) maxSlots++;
+        int nonNull = 0;
+        for (int i = 0; i < maxSlots && i < btns.size(); i++) {
+            if (btns.get(i) != null) nonNull++;
+        }
+        return nonNull >= maxSlots;
+    }
+
     private void saveAndRefresh() {
         try {
             ConfigLoader.save(configPath, pages);
@@ -813,6 +948,112 @@ public class StreamDeckApp extends JFrame {
         }
         iconCache.clear();
         updateAllButtons();
+    }
+
+    private void log(String message) {
+        try {
+            File logFile = new File(logDir, "appdeck.log");
+            long maxSize = 5L * 1024 * 1024;
+            if (logFile.exists() && logFile.length() > maxSize) {
+                rotateLogs(logFile);
+            }
+            String line = new java.text.SimpleDateFormat("yyyy.MM.dd_HH:mm:ss").format(new java.util.Date())
+                + " " + message + System.lineSeparator();
+            try (java.io.FileWriter fw = new java.io.FileWriter(logFile, true)) {
+                fw.write(line);
+            }
+        } catch (Exception ignored) {}
+    }
+
+    private void rotateLogs(File logFile) {
+        for (int i = 8; i >= 0; i--) {
+            File src = i == 0 ? logFile : new File(logDir, "appdeck." + i + ".log");
+            File dst = new File(logDir, "appdeck." + (i + 1) + ".log");
+            if (src.exists()) src.renameTo(dst);
+        }
+    }
+
+    private void startVideoChecker() {
+        log("YouTube-Prüfung gestartet (Intervall: " + CHECK_INTERVAL_MINUTES + " Minuten)");
+        scheduler.scheduleWithFixedDelay(this::checkAllUrls, 10, CHECK_INTERVAL_MINUTES * 60L, TimeUnit.SECONDS);
+    }
+
+    private int checkAllUrls() {
+        log("YouTube-Prüfung gestartet");
+        int total = 0;
+        for (int p = 0; p < pages.size(); p++) {
+            total += checkPageUrls(pages.get(p));
+            for (ButtonConfig cfg : pages.get(p)) {
+                if (cfg != null && "FOLDER".equals(cfg.getType()) && cfg.getPages() != null) {
+                    for (List<ButtonConfig> fp : cfg.getPages()) {
+                        total += checkPageUrls(fp);
+                    }
+                }
+            }
+        }
+        log(total > 0 ? total + " neue Videos gefunden" : "Keine neuen Videos");
+        log("Nächste Prüfung: " + new java.text.SimpleDateFormat("yyyy.MM.dd_HH:mm:ss")
+            .format(new java.util.Date(System.currentTimeMillis() + CHECK_INTERVAL_MINUTES * 60_000L)));
+        log("");
+        return total;
+    }
+
+    private int checkPageUrls(List<ButtonConfig> page) {
+        int found = 0;
+        for (int i = 0; i < page.size(); i++) {
+            ButtonConfig cfg = page.get(i);
+            if (cfg == null || cfg.getTarget() == null || !cfg.isCheck()) continue;
+            String vid = fetchLatestVideoId(cfg.getTarget());
+            String stored = cfg.getLatestVideoId();
+            if (stored != null && !stored.matches("[A-Za-z0-9_-]{6,}")) stored = null;
+            if (vid != null && !vid.equals(stored)) {
+                if (stored != null) {
+                    cfg.setHasNew(true);
+                    found++;
+                    log("  " + cfg.getLabel() + ": NEU! " + stored + " -> " + vid);
+                } else {
+                    log("  " + cfg.getLabel() + ": erste ID gespeichert (" + vid + ")");
+                }
+                cfg.setLatestVideoId(vid);
+                try { ConfigLoader.save(configPath, pages); } catch (IOException ex) {}
+                SwingUtilities.invokeLater(this::updateAllButtons);
+            } else {
+                log("  " + cfg.getLabel() + ": vid=" + vid + " stored=" + stored + " -> keine Änderung");
+            }
+        }
+        return found;
+    }
+
+    private String fetchLatestVideoId(String url) {
+        try {
+            java.net.HttpURLConnection conn = (java.net.HttpURLConnection) new java.net.URL(url).openConnection();
+            conn.setConnectTimeout(10000);
+            conn.setReadTimeout(10000);
+            conn.setRequestProperty("User-Agent", "Mozilla/5.0");
+            int status = conn.getResponseCode();
+            if (status != 200) {
+                log("  HTTP " + status + " für " + url);
+                return null;
+            }
+            BufferedReader r = new BufferedReader(new InputStreamReader(conn.getInputStream(), "UTF-8"));
+            StringBuilder html = new StringBuilder();
+            char[] buf = new char[4096];
+            int n;
+            while ((n = r.read(buf)) > 0) html.append(buf, 0, n);
+            r.close();
+            java.util.regex.Pattern p = java.util.regex.Pattern.compile("\"videoId\":\"([A-Za-z0-9_-]{6,})\"");
+            java.util.regex.Matcher m = p.matcher(html);
+            if (m.find()) {
+                String vid = m.group(1);
+                log("  Video-ID gefunden: " + vid);
+                return vid;
+            }
+            log("  Keine Video-ID in der Seite gefunden");
+            return null;
+        } catch (Exception e) {
+            log("  Fehler beim Fetch: " + e.getClass().getSimpleName() + " - " + e.getMessage());
+            return null;
+        }
     }
 
     private void execute(ButtonConfig cfg) {
@@ -843,10 +1084,24 @@ public class StreamDeckApp extends JFrame {
             }
             return;
         }
+        if (cfg.isHasNew()) {
+            cfg.setHasNew(false);
+            try { ConfigLoader.save(configPath, pages); } catch (IOException ex) {}
+            updateAllButtons();
+        }
         try {
             switch (cfg.getType().toUpperCase()) {
-                case "URL" -> Desktop.getDesktop().browse(URI.create(cfg.getTarget()));
+                case "URL" -> {
+                    String t = cfg.getTarget();
+                    if (t.startsWith("file://")) {
+                        String path = t.startsWith("file:///") ? t.substring(7) : t.substring(6);
+                        Desktop.getDesktop().open(new File(path));
+                    } else {
+                        Desktop.getDesktop().browse(new URI(t));
+                    }
+                }
                 case "PROGRAM" -> Runtime.getRuntime().exec(parseCommand(cfg.getTarget()));
+                case "FILE" -> Desktop.getDesktop().open(new File(cfg.getTarget()));
                 default -> JOptionPane.showMessageDialog(this, "Unknown type: " + cfg.getType());
             }
         } catch (Exception ex) {
@@ -1083,7 +1338,7 @@ public class StreamDeckApp extends JFrame {
         Icon cached = iconCache.get(cacheKey);
         if (cached != null) return cached;
         Icon icon = switch (type) {
-            case "PROGRAM" -> resolveProgramIcon(target);
+            case "PROGRAM", "FILE" -> resolveProgramIcon(target);
             case "URL" -> resolveFavicon(target);
             default -> null;
         };
