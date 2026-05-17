@@ -55,6 +55,7 @@ public class StreamDeckApp extends JFrame {
     private final Set<String> killedApps = new HashSet<>();
     private ButtonConfig currentFolder;
     private int savedRootPage;
+    private boolean searchDialogOpen;
     private java.awt.KeyEventDispatcher searchKeyDispatcher;
 
     public StreamDeckApp(List<List<ButtonConfig>> pages, String configPath) {
@@ -77,7 +78,7 @@ public class StreamDeckApp extends JFrame {
         appMenu.add(aboutItem);
         appMenu.addSeparator();
         JMenuItem searchItem = new JMenuItem("Suche mit Strg + F");
-        searchItem.addActionListener(e -> showSearchDialog());
+        searchItem.addActionListener(e -> showSearchDialog(""));
         appMenu.add(searchItem);
         appMenu.addSeparator();
         JMenuItem exitItem = new JMenuItem("App Desk beenden");
@@ -296,9 +297,17 @@ public class StreamDeckApp extends JFrame {
         });
 
         searchKeyDispatcher = e -> {
+            if (e.getID() == KeyEvent.KEY_TYPED) {
+                char c = e.getKeyChar();
+                if (!Character.isISOControl(c) && !e.isMetaDown() && !e.isControlDown() && !e.isAltDown() && !searchDialogOpen) {
+                    showSearchDialog(String.valueOf(c));
+                    return true;
+                }
+                return false;
+            }
             if (e.getID() != KeyEvent.KEY_PRESSED) return false;
             if ((e.isMetaDown() || e.isControlDown()) && e.getKeyCode() == KeyEvent.VK_F) {
-                showSearchDialog();
+                showSearchDialog("");
                 return true;
             }
             return false;
@@ -817,7 +826,7 @@ public class StreamDeckApp extends JFrame {
         }
     }
 
-    private void showSearchDialog() {
+    private void showSearchDialog(String initialText) {
         List<Object[]> allEntries = new ArrayList<>();
         for (int p = 0; p < pages.size(); p++) {
             List<ButtonConfig> page = pages.get(p);
@@ -844,7 +853,16 @@ public class StreamDeckApp extends JFrame {
             return;
         }
 
-        JTextField searchField = new JTextField(20);
+        JTextField searchField = new JTextField(initialText, 20);
+        if (!initialText.isEmpty()) {
+            searchField.addFocusListener(new java.awt.event.FocusAdapter() {
+                @Override
+                public void focusGained(java.awt.event.FocusEvent e) {
+                    searchField.setCaretPosition(searchField.getText().length());
+                    searchField.removeFocusListener(this);
+                }
+            });
+        }
         DefaultListModel<String> listModel = new DefaultListModel<>();
         JList<String> resultList = new JList<>(listModel);
         resultList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
@@ -852,26 +870,27 @@ public class StreamDeckApp extends JFrame {
 
         List<Object[]> filtered = new ArrayList<>();
 
-        java.awt.event.KeyAdapter filter = new java.awt.event.KeyAdapter() {
-            @Override
-            public void keyReleased(java.awt.event.KeyEvent e) {
-                String q = searchField.getText().toLowerCase();
-                listModel.clear();
-                filtered.clear();
-                for (Object[] entry : allEntries) {
-                    ButtonConfig cfg = (ButtonConfig) entry[0];
-                    if (cfg.getLabel().toLowerCase().contains(q) || cfg.getTarget().toLowerCase().contains(q)) {
-                        filtered.add(entry);
-                        int rootPage = (int) entry[1];
-                        String loc = entry[2] != null
-                            ? "S." + (rootPage + 1) + " > " + ((ButtonConfig) entry[2]).getLabel() + " > S." + ((int) entry[4] + 1)
-                            : "S." + (rootPage + 1);
-                        listModel.addElement(cfg.getLabel() + "  (" + loc + ")");
-                    }
+        Runnable filterAction = () -> {
+            String q = searchField.getText().toLowerCase();
+            listModel.clear();
+            filtered.clear();
+            for (Object[] entry : allEntries) {
+                ButtonConfig cfg = (ButtonConfig) entry[0];
+                if (cfg.getLabel().toLowerCase().contains(q) || cfg.getTarget().toLowerCase().contains(q)) {
+                    filtered.add(entry);
+                    int rootPage = (int) entry[1];
+                    String loc = entry[2] != null
+                        ? "S." + (rootPage + 1) + " > " + ((ButtonConfig) entry[2]).getLabel() + " > S." + ((int) entry[4] + 1)
+                        : "S." + (rootPage + 1);
+                    listModel.addElement(cfg.getLabel() + "  (" + loc + ")");
                 }
             }
         };
-        searchField.addKeyListener(filter);
+
+        searchField.addKeyListener(new java.awt.event.KeyAdapter() {
+            @Override
+            public void keyReleased(java.awt.event.KeyEvent e) { filterAction.run(); }
+        });
 
         JPanel dialogPanel = new JPanel(new BorderLayout(6, 6));
         dialogPanel.setBorder(BorderFactory.createEmptyBorder(8, 8, 8, 8));
@@ -943,7 +962,13 @@ public class StreamDeckApp extends JFrame {
         resultList.addKeyListener(enterKey);
         searchField.addKeyListener(enterKey);
 
+        if (!initialText.isEmpty()) {
+            filterAction.run();
+        }
+
+        searchDialogOpen = true;
         dialog.setVisible(true);
+        searchDialogOpen = false;
     }
 
     private void navigateToResult(Object[] entry) {
@@ -966,8 +991,16 @@ public class StreamDeckApp extends JFrame {
         int gridIdx = pageToGridIndex(pageIdx);
         if (gridIdx >= 0) {
             JButton btn = btnComponents[gridIdx];
-            btn.setBorder(BorderFactory.createLineBorder(new Color(255, 200, 0), 3));
+            Border origBorder = btn.getBorder();
+            Border yellowBorder = BorderFactory.createLineBorder(new Color(255, 200, 0), 4);
+            final boolean[] visible = {true};
+            javax.swing.Timer blink = new javax.swing.Timer(400, ev -> {
+                visible[0] = !visible[0];
+                btn.setBorder(visible[0] ? yellowBorder : origBorder);
+            });
+            blink.start();
             javax.swing.Timer reset = new javax.swing.Timer(5000, ev -> {
+                blink.stop();
                 if (currentFolder != null || currentPage == rootPage) {
                     String appKey = "PROGRAM".equals(cfg.getType()) ? extractAppName(cfg.getTarget()).toLowerCase() : null;
                     btn.setBorder(appKey != null && isAppRunning(appKey) && !killedApps.contains(appKey)
