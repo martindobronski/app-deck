@@ -29,9 +29,10 @@ public class StreamDeckApp extends JFrame {
         System.setProperty("apple.awt.application.name", "App Deck");
     }
 
-    private static final int COLS = 5;
-    private static final int ROWS = 3;
+    private static final int COLS = 6;
+    private static final int ROWS = 4;
     private static final int BUTTON_SIZE = 120;
+    private static final int BOTTOM_ROW_START = (ROWS - 1) * COLS;
     private static final int ICON_SIZE = 48;
     private static final int DRAG_THRESHOLD = 5;
 
@@ -116,8 +117,7 @@ public class StreamDeckApp extends JFrame {
                     if (dragPerformed) { dragPerformed = false; return; }
                     int pageIdx = gridToPageIndex(gridIdx);
                     if (pageIdx < 0) {
-                        if (currentFolder != null && gridIdx == 13) { leaveFolder(); return; }
-                        if (currentFolder != null && gridIdx == 10) { leaveFolder(); return; }
+                        if (currentFolder != null && (gridIdx == COLS * ROWS - 2 || gridIdx == BOTTOM_ROW_START)) { leaveFolder(); return; }
                         prevPage(); return;
                     }
                     List<ButtonConfig> btns = currentPageBtns();
@@ -230,15 +230,15 @@ public class StreamDeckApp extends JFrame {
     }
 
     private int gridToPageIndex(int gridIdx) {
-        if (gridIdx == 14) return -1;
+        if (gridIdx == COLS * ROWS - 1) return -1;
         if (currentFolder != null) {
             if (currentPage == 0) {
-                if (gridIdx < 10) return gridIdx;
-                if (gridIdx == 10) return -1;
+                if (gridIdx < BOTTOM_ROW_START) return gridIdx;
+                if (gridIdx == BOTTOM_ROW_START) return -1;
                 return gridIdx - 1;
             } else {
-                if (gridIdx < 10) return gridIdx;
-                if (gridIdx == 10 || gridIdx == 13) return -1;
+                if (gridIdx < BOTTOM_ROW_START) return gridIdx;
+                if (gridIdx == BOTTOM_ROW_START || gridIdx == COLS * ROWS - 2) return -1;
                 return gridIdx - 1;
             }
         }
@@ -246,15 +246,15 @@ public class StreamDeckApp extends JFrame {
         int col = gridIdx % COLS;
         if (row < ROWS - 1) return gridIdx;
         if (col == 0) return currentPage == 0 ? gridIdx : -1;
-        return (ROWS - 1) * COLS + col - (currentPage == 0 ? 0 : 1);
+        return BOTTOM_ROW_START + col - (currentPage == 0 ? 0 : 1);
     }
 
     private int pageToGridIndex(int pageIdx) {
         if (currentFolder != null) {
-            if (pageIdx < 10) return pageIdx;
-            return currentPage == 0 ? pageIdx + 1 : pageIdx + 2;
+            if (pageIdx < BOTTOM_ROW_START) return pageIdx;
+            return pageIdx + 1;
         }
-        if (pageIdx < (ROWS - 1) * COLS) return pageIdx;
+        if (pageIdx < BOTTOM_ROW_START) return pageIdx;
         if (currentPage == 0) return pageIdx;
         return pageIdx + 1;
     }
@@ -302,7 +302,7 @@ public class StreamDeckApp extends JFrame {
         List<ButtonConfig> btns = currentPageBtns();
         int pageIdx = gridToPageIndex(gridIdx);
         if (pageIdx < 0) {
-            if (currentFolder != null && ((currentPage == 0 && gridIdx == 10) || (currentPage > 0 && gridIdx == 13))) {
+            if (currentFolder != null && ((currentPage == 0 && gridIdx == BOTTOM_ROW_START) || (currentPage > 0 && gridIdx == COLS * ROWS - 2))) {
                 btn.setFont(btn.getFont().deriveFont(48f));
                 btn.setText("\u2190");
                 btn.setToolTipText("Zur\u00fcck");
@@ -478,10 +478,12 @@ public class StreamDeckApp extends JFrame {
         JComboBox<String> typeBox = new JComboBox<>(new String[]{"URL", "PROGRAM", "FOLDER", "COPY"});
         typeBox.setSelectedItem(cfg.getType());
 
-        JTextField targetField = new JTextField(cfg.getTarget(), 20);
-        targetField.getDocument().addDocumentListener(new javax.swing.event.DocumentListener() {
+        JTextArea targetArea = new JTextArea(cfg.getTarget(), 2, 20);
+        targetArea.setLineWrap(true);
+        targetArea.setWrapStyleWord(true);
+        targetArea.getDocument().addDocumentListener(new javax.swing.event.DocumentListener() {
             private void check() {
-                String text = targetField.getText().trim();
+                String text = targetArea.getText().trim();
                 if (text.isEmpty()) return;
                 if ("FOLDER".equals(typeBox.getSelectedItem()) || "COPY".equals(typeBox.getSelectedItem())) return;
                 if (text.startsWith("http://") || text.startsWith("https://")) {
@@ -510,10 +512,8 @@ public class StreamDeckApp extends JFrame {
             @Override public void changedUpdate(javax.swing.event.DocumentEvent e) { check(); }
         });
 
-        typeBox.addActionListener(ev -> {
-            boolean disable = "FOLDER".equals(typeBox.getSelectedItem());
-            targetField.setEnabled(!disable);
-        });
+        JScrollPane targetScroll = new JScrollPane(targetArea);
+        targetScroll.setPreferredSize(new Dimension(200, 40));
 
         JButton browseBtn = new JButton("...");
         browseBtn.setPreferredSize(new Dimension(32, 26));
@@ -553,16 +553,25 @@ public class StreamDeckApp extends JFrame {
                 String path = fc.getSelectedFile().getAbsolutePath();
                 if (path.endsWith(".app")) {
                     typeBox.setSelectedItem("PROGRAM");
-                    targetField.setText("open \"" + path + "\"");
+                    targetArea.setText("open \"" + path + "\"");
                 } else {
                     typeBox.setSelectedItem("URL");
-                    targetField.setText("file://" + path);
+                    targetArea.setText("file://" + path);
                 }
             }
         });
 
+        typeBox.addActionListener(ev -> {
+            boolean isFolder = "FOLDER".equals(typeBox.getSelectedItem());
+            boolean isCopy = "COPY".equals(typeBox.getSelectedItem());
+            targetArea.setEnabled(!isFolder);
+            targetArea.setRows(isCopy ? 5 : 2);
+            browseBtn.setVisible(!isFolder && !isCopy);
+            targetScroll.setPreferredSize(new Dimension(200, isCopy ? 90 : 40));
+        });
+
         JPanel targetPanel = new JPanel(new BorderLayout(4, 0));
-        targetPanel.add(targetField, BorderLayout.CENTER);
+        targetPanel.add(targetScroll, BorderLayout.CENTER);
         targetPanel.add(browseBtn, BorderLayout.EAST);
 
         JPanel panel = new JPanel(new GridBagLayout());
@@ -592,7 +601,7 @@ public class StreamDeckApp extends JFrame {
 
         if (result == JOptionPane.OK_OPTION) {
             ButtonConfig updated = new ButtonConfig(
-                labelField.getText(), (String) typeBox.getSelectedItem(), targetField.getText());
+                labelField.getText(), (String) typeBox.getSelectedItem(), targetArea.getText());
             if ("FOLDER".equals(updated.getType())) {
                 if (cfg.getPages() != null)
                     updated.setPages(cfg.getPages());
@@ -619,15 +628,57 @@ public class StreamDeckApp extends JFrame {
 
         int srcIdx = gridToPageIndex(dragSourceIndex);
         int tgtIdx = gridToPageIndex(targetGrid);
-        if (srcIdx < 0 || tgtIdx < 0 || srcIdx == tgtIdx) return;
+        if (srcIdx < 0 && dragSourceIndex >= 0) return;
 
         List<ButtonConfig> btns = currentPageBtns();
         while (srcIdx >= btns.size()) btns.add(null);
-        while (tgtIdx >= btns.size()) btns.add(null);
+        ButtonConfig sourceCfg = btns.get(srcIdx);
+        if (sourceCfg == null) return;
 
-        ButtonConfig temp = btns.get(srcIdx);
-        btns.set(srcIdx, btns.get(tgtIdx));
-        btns.set(tgtIdx, temp);
+        if (tgtIdx < 0) {
+            if (currentFolder != null && (targetGrid == BOTTOM_ROW_START || targetGrid == COLS * ROWS - 2)) {
+                btns.set(srcIdx, null);
+                List<ButtonConfig> rootBtns;
+                while (savedRootPage >= pages.size()) pages.add(new ArrayList<>());
+                rootBtns = pages.get(savedRootPage);
+                int emptyIdx = -1;
+                for (int i = 0; i < rootBtns.size(); i++) {
+                    if (rootBtns.get(i) == null) { emptyIdx = i; break; }
+                }
+                if (emptyIdx >= 0) rootBtns.set(emptyIdx, sourceCfg);
+                else rootBtns.add(sourceCfg);
+                try { ConfigLoader.save(configPath, pages); } catch (IOException ex) {}
+                leaveFolder();
+            }
+            return;
+        }
+
+        if (srcIdx == tgtIdx) return;
+
+        List<ButtonConfig> tgtBtns = currentPageBtns();
+        while (tgtIdx >= tgtBtns.size()) tgtBtns.add(null);
+        ButtonConfig targetCfg = tgtBtns.get(tgtIdx);
+
+        if ("FOLDER".equals(targetCfg != null ? targetCfg.getType() : null)) {
+            List<List<ButtonConfig>> folderPages = targetCfg.getPages();
+            if (folderPages == null) {
+                folderPages = new ArrayList<>();
+                targetCfg.setPages(folderPages);
+            }
+            if (folderPages.isEmpty()) folderPages.add(new ArrayList<>());
+            List<ButtonConfig> firstPage = folderPages.get(0);
+            int emptyIdx = -1;
+            for (int i = 0; i < firstPage.size(); i++) {
+                if (firstPage.get(i) == null) { emptyIdx = i; break; }
+            }
+            if (emptyIdx >= 0) firstPage.set(emptyIdx, sourceCfg);
+            else firstPage.add(sourceCfg);
+            btns.set(srcIdx, null);
+        } else {
+            ButtonConfig temp = btns.get(srcIdx);
+            btns.set(srcIdx, btns.get(tgtIdx));
+            btns.set(tgtIdx, temp);
+        }
 
         updateButton(dragSourceIndex);
         updateButton(targetGrid);
