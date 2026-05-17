@@ -147,7 +147,7 @@ public class StreamDeckApp extends JFrame {
                     if (dragPerformed) { dragPerformed = false; return; }
                     int pageIdx = gridToPageIndex(gridIdx);
                     if (pageIdx < 0) {
-                        if (currentFolder != null && (gridIdx == COLS * ROWS - 2 || gridIdx == BOTTOM_ROW_START)) { leaveFolder(); return; }
+                        if (currentFolder != null && currentPage == 0) { leaveFolder(); return; }
                         prevPage(); return;
                     }
                     List<ButtonConfig> btns = currentPageBtns();
@@ -261,31 +261,17 @@ public class StreamDeckApp extends JFrame {
 
     private int gridToPageIndex(int gridIdx) {
         if (gridIdx == COLS * ROWS - 1) return -1;
-        if (currentFolder != null) {
-            if (currentPage == 0) {
-                if (gridIdx < BOTTOM_ROW_START) return gridIdx;
-                if (gridIdx == BOTTOM_ROW_START) return -1;
-                return gridIdx - 1;
-            } else {
-                if (gridIdx < BOTTOM_ROW_START) return gridIdx;
-                if (gridIdx == BOTTOM_ROW_START || gridIdx == COLS * ROWS - 2) return -1;
-                return gridIdx - 1;
-            }
-        }
+        if (currentFolder != null && gridIdx == BOTTOM_ROW_START) return -1;
         int row = gridIdx / COLS;
         int col = gridIdx % COLS;
         if (row < ROWS - 1) return gridIdx;
-        if (col == 0) return currentPage == 0 ? gridIdx : -1;
-        return BOTTOM_ROW_START + col - (currentPage == 0 ? 0 : 1);
+        if (col == 0) return currentPage == 0 && currentFolder == null ? gridIdx : -1;
+        return BOTTOM_ROW_START + col - (currentPage == 0 && currentFolder == null ? 0 : 1);
     }
 
     private int pageToGridIndex(int pageIdx) {
-        if (currentFolder != null) {
-            if (pageIdx < BOTTOM_ROW_START) return pageIdx;
-            return pageIdx + 1;
-        }
         if (pageIdx < BOTTOM_ROW_START) return pageIdx;
-        if (currentPage == 0) return pageIdx;
+        if (currentPage == 0 && currentFolder == null) return pageIdx;
         return pageIdx + 1;
     }
 
@@ -334,12 +320,7 @@ public class StreamDeckApp extends JFrame {
         int pageIdx = gridToPageIndex(gridIdx);
         if (pageIdx < 0) {
             btn.putClientProperty("empty", false);
-            if (currentFolder != null && ((currentPage == 0 && gridIdx == BOTTOM_ROW_START) || (currentPage > 0 && gridIdx == COLS * ROWS - 2))) {
-                btn.setFont(btn.getFont().deriveFont(48f));
-                btn.setText("\u2190");
-                btn.setToolTipText("Zur\u00fcck");
-                btn.setEnabled(true);
-            } else if (currentPage > 0) {
+            if (currentPage > 0 || currentFolder != null) {
                 btn.setFont(btn.getFont().deriveFont(28f));
                 btn.setText("\u25C0");
                 btn.setToolTipText("Vorherige Seite");
@@ -671,19 +652,27 @@ public class StreamDeckApp extends JFrame {
         if (sourceCfg == null) return;
 
         if (tgtIdx < 0) {
-            if (currentFolder != null && (targetGrid == BOTTOM_ROW_START || targetGrid == COLS * ROWS - 2)) {
-                btns.set(srcIdx, null);
-                List<ButtonConfig> rootBtns;
-                while (savedRootPage >= pages.size()) pages.add(new ArrayList<>());
-                rootBtns = pages.get(savedRootPage);
-                int emptyIdx = -1;
-                for (int i = 0; i < rootBtns.size(); i++) {
-                    if (rootBtns.get(i) == null) { emptyIdx = i; break; }
+            if (targetGrid == BOTTOM_ROW_START) {
+                int targetPage = currentPage - 1;
+                List<List<ButtonConfig>> targetList = currentPageList();
+                if (targetPage < 0) {
+                    if (currentFolder == null) return;
+                    targetPage = savedRootPage;
+                    targetList = pages;
                 }
-                if (emptyIdx >= 0) rootBtns.set(emptyIdx, sourceCfg);
-                else rootBtns.add(sourceCfg);
+                btns.set(srcIdx, null);
+                while (targetPage >= targetList.size()) targetList.add(new ArrayList<>());
+                List<ButtonConfig> prevBtns = targetList.get(targetPage);
+                int emptyIdx = -1;
+                for (int i = 0; i < prevBtns.size(); i++) {
+                    if (prevBtns.get(i) == null) { emptyIdx = i; break; }
+                }
+                if (emptyIdx >= 0) prevBtns.set(emptyIdx, sourceCfg);
+                else prevBtns.add(sourceCfg);
                 try { ConfigLoader.save(configPath, pages); } catch (IOException ex) {}
-                leaveFolder();
+                if (currentPage == 0 && currentFolder != null) { leaveFolder(); return; }
+                iconCache.clear();
+                updateAllButtons();
             }
             return;
         }

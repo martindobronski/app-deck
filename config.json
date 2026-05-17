@@ -102,6 +102,11 @@
             "label": "37 Grad",
             "type": "URL",
             "target": "https://www.youtube.com/@37Grad/videos"
+          },
+          {
+            "label": "Zeitplanerin",
+            "type": "URL",
+            "target": "https://www.youtube.com/@zeitplanerin/videos"
           }
         ]
       ]
@@ -118,7 +123,7 @@
             "target": "https://claude.ai"
           },
           {
-            "label": "Chatgpt",
+            "label": "ChatGPT",
             "type": "URL",
             "target": "https://chatgpt.com"
           },
@@ -126,11 +131,6 @@
             "label": "Perplexity",
             "type": "URL",
             "target": "https://perplexity.com"
-          },
-          {
-            "label": "Google Notebooklm",
-            "type": "URL",
-            "target": "https://notebooklm.google.com/"
           },
           {
             "label": "Grok",
@@ -142,15 +142,21 @@
             "type": "URL",
             "target": "https://www.deepseek.com/en/"
           },
-          null,
-          null,
-          null,
+          {
+            "label": "Google Notebooklm",
+            "type": "URL",
+            "target": "https://notebooklm.google.com/"
+          },
           {
             "label": "OpenWebUI - llama3.2:3b",
             "type": "URL",
             "target": "http://192.168.8.215:3001/"
-          }
-        ]
+          },
+          null,
+          null,
+          null
+        ],
+        []
       ]
     },
     {
@@ -339,7 +345,65 @@
         ]
       ]
     },
-    null,
+    {
+      "label": "Finanzen",
+      "type": "FOLDER",
+      "target": "",
+      "pages": [
+        [
+          {
+            "label": "BSDEX",
+            "type": "URL",
+            "target": "https://app.bsdex.de/trading/btc-eur"
+          },
+          {
+            "label": "Cointracking Dashboard",
+            "type": "URL",
+            "target": "https://cointracking.info/dashboard"
+          },
+          {
+            "label": "Maple Leaf - Chart",
+            "type": "URL",
+            "target": "https://www.finanzen.net/goldmuenzen/maple-leaf-unze"
+          },
+          {
+            "label": "Goldpreis - Chart",
+            "type": "URL",
+            "target": "https://www.finanzen.net/rohstoffe/goldpreis"
+          },
+          {
+            "label": "Silberpreis - Chart",
+            "type": "URL",
+            "target": "https://www.finanzen.net/rohstoffe/silberpreis"
+          },
+          {
+            "label": "Ölpreis - Chart",
+            "type": "URL",
+            "target": "https://www.finanzen.net/rohstoffe/oelpreis"
+          },
+          {
+            "label": "Rohstoffe",
+            "type": "URL",
+            "target": "https://www.finanzen.net/rohstoffe"
+          },
+          {
+            "label": "Interactive Brokers",
+            "type": "URL",
+            "target": "https://www.interactivebrokers.ie/de/home.php"
+          },
+          {
+            "label": "Staatenlos",
+            "type": "URL",
+            "target": "https://staatenlos.ch/"
+          },
+          {
+            "label": "Hustler",
+            "type": "URL",
+            "target": "https://www.youtube.com/@HustlerBizReal/videos"
+          }
+        ]
+      ]
+    },
     null,
     null,
     {
@@ -381,6 +445,17 @@
       "label": "Amazon Prime Video",
       "type": "URL",
       "target": "https://www.amazon.de/gp/video/storefront?ref_\u003dnav_cs_prime_video"
+    },
+    {
+      "label": "WezTerm",
+      "type": "PROGRAM",
+      "target": "open \"/Applications/WezTerm.app\""
+    },
+    null,
+    {
+      "label": "MoneyMoney",
+      "type": "PROGRAM",
+      "target": "open \"/Applications/MoneyMoney.app\""
     }
   ],
   [
@@ -519,15 +594,13 @@
         ]
       ]
     },
+    null,
+    null,
+    null,
     {
       "label": "Router",
       "type": "URL",
       "target": "http://192.168.8.2/#/login"
-    },
-    {
-      "label": "Alle Störungen",
-      "type": "URL",
-      "target": "https://xn--allestrungen-9ib.de/"
     },
     {
       "label": "Notizen",
@@ -539,16 +612,18 @@
       "type": "PROGRAM",
       "target": "open \"/Applications/Amazon Kindle.app\""
     },
+    {
+      "label": "Alle Störungen",
+      "type": "URL",
+      "target": "https://xn--allestrungen-9ib.de/"
+    },
+    null,
     null,
     null,
     null
   ],
   [
-    {
-      "label": "MoneyMoney",
-      "type": "PROGRAM",
-      "target": "open \"/Applications/MoneyMoney.app\""
-    },
+    null,
     null,
     null,
     null,
