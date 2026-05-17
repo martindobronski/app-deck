@@ -3,3 +3,5 @@ dependency-reduced-pom.xml
 *.class
 .idea/
 *.iml
+App Deck.app/
+dist/

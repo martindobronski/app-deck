@@ -1,55 +1,347 @@
 [
   [
     {
-      "label": "Index",
+      "label": "Favoriten-Seite",
       "type": "URL",
       "target": "file:///Users/martin/Favoriten-Seite/index.html"
     },
     {
-      "label": "Calendar",
-      "type": "URL",
-      "target": "https://calendar.google.com"
-    },
-    {
-      "label": "Terminal",
-      "type": "PROGRAM",
-      "target": "open -a Terminal"
-    },
-    {
-      "label": "Visual Studio Code",
-      "type": "PROGRAM",
-      "target": "open \"/Applications/Visual Studio Code.app\""
-    },
-    {
-      "label": "Drive",
-      "type": "URL",
-      "target": "https://drive.google.com"
-    },
-    {
-      "label": "Gmail",
-      "type": "URL",
-      "target": "https://mail.google.com"
+      "label": "News",
+      "type": "FOLDER",
+      "target": "",
+      "pages": [
+        [
+          {
+            "label": "NetNewsWire",
+            "type": "PROGRAM",
+            "target": "open \"/Applications/NetNewsWire.app\""
+          },
+          null,
+          {
+            "label": "Handelsblatt",
+            "type": "URL",
+            "target": "https://www.handelsblatt.com/"
+          },
+          {
+            "label": "Handelsblatt Morning Briefing",
+            "type": "URL",
+            "target": "https://kurzlinks.de/nzs0"
+          },
+          null,
+          null,
+          null,
+          null,
+          {
+            "label": "Kontrafunk Live",
+            "type": "URL",
+            "target": "https://kontrafunk.radio/de/player"
+          },
+          {
+            "label": "Kontrafunk Nachrichten",
+            "type": "URL",
+            "target": "https://kontrafunk.radio/de/"
+          },
+          {
+            "label": "Kontrafunk Mann-und-frau",
+            "type": "URL",
+            "target": "https://kontrafunk.radio/de/sendung-nachhoeren/talkshow/mann-und-frau"
+          },
+          null,
+          null,
+          null,
+          {
+            "label": "Deutschlandfunk Nachlesen",
+            "type": "URL",
+            "target": "https://www.deutschlandfunk.de/nachrichten/nachlesen"
+          },
+          {
+            "label": "Tagesschau",
+            "type": "URL",
+            "target": "https://www.tagesschau.de/"
+          }
+        ]
+      ]
     },
     {
       "label": "YouTube",
+      "type": "FOLDER",
+      "target": "",
+      "pages": [
+        [
+          {
+            "label": "Youtube Startseite",
+            "type": "URL",
+            "target": "https://www.youtube.com/"
+          },
+          {
+            "label": "Willkommen bei den Hartmanns",
+            "type": "URL",
+            "target": "https://www.youtube.com/@willkommenbeidenhartmanns78/videos"
+          },
+          {
+            "label": "{ungeskriptet} by Ben",
+            "type": "URL",
+            "target": "https://www.youtube.com/@ben_ungeskriptet/videos"
+          },
+          {
+            "label": "Salim Samatou",
+            "type": "URL",
+            "target": "https://www.youtube.com/@SalimSamatou1/videos"
+          },
+          {
+            "label": "Die Weltwoche",
+            "type": "URL",
+            "target": "https://www.youtube.com/@die.weltwoche/videos"
+          },
+          {
+            "label": "Rafael Zeier",
+            "type": "URL",
+            "target": "https://www.youtube.com/@RafaelZeier/videos"
+          },
+          {
+            "label": "37 Grad",
+            "type": "URL",
+            "target": "https://www.youtube.com/@37Grad/videos"
+          }
+        ]
+      ]
+    },
+    {
+      "label": "KI Tools",
+      "type": "FOLDER",
+      "target": "",
+      "pages": [
+        [
+          {
+            "label": "Claude",
+            "type": "URL",
+            "target": "https://claude.ai"
+          },
+          {
+            "label": "Chatgpt",
+            "type": "URL",
+            "target": "https://chatgpt.com"
+          },
+          {
+            "label": "Perplexity",
+            "type": "URL",
+            "target": "https://perplexity.com"
+          },
+          {
+            "label": "Google Notebooklm",
+            "type": "URL",
+            "target": "https://notebooklm.google.com/"
+          },
+          {
+            "label": "Grok",
+            "type": "URL",
+            "target": "https://grok.com/"
+          },
+          {
+            "label": "Deepseek",
+            "type": "URL",
+            "target": "https://www.deepseek.com/en/"
+          },
+          null,
+          null,
+          null,
+          {
+            "label": "OpenWebUI - llama3.2:3b",
+            "type": "URL",
+            "target": "http://192.168.8.215:3001/"
+          }
+        ]
+      ]
+    },
+    {
+      "label": "Paperless",
       "type": "URL",
-      "target": "https://youtube.com"
+      "target": "http://192.168.8.215:8000/dashboard"
     },
     {
-      "label": "Browser",
-      "type": "PROGRAM",
-      "target": "open -a Safari"
-    },
-    {
-      "label": "Obsidian",
-      "type": "PROGRAM",
-      "target": "open \"/Applications/Obsidian.app\""
-    },
-    {
-      "label": "GitHub",
+      "label": "HomeAssistant",
       "type": "URL",
-      "target": "https://github.com"
+      "target": "http://192.168.8.215:8123/ubersicht-md/0"
     },
+    {
+      "label": "Bitcoin",
+      "type": "FOLDER",
+      "target": "",
+      "pages": [
+        [
+          {
+            "label": "BiTBO - Bitcoin Live Kurs",
+            "type": "URL",
+            "target": "https://bitbo.io/de/"
+          },
+          {
+            "label": "Crypto Heroes",
+            "type": "URL",
+            "target": "https://www.youtube.com/@CryptoHeroesYT/videos"
+          },
+          {
+            "label": "Robin HD",
+            "type": "URL",
+            "target": "https://www.youtube.com/@RobynHD/videos"
+          },
+          {
+            "label": "CoinCheckTV",
+            "type": "URL",
+            "target": "https://www.youtube.com/@CoinCheckTV"
+          },
+          {
+            "label": "Blocktrainer",
+            "type": "URL",
+            "target": "https://www.youtube.com/@Blocktrainer/videos"
+          },
+          null,
+          {
+            "label": "Bitcoin-Kurier",
+            "type": "URL",
+            "target": "https://bitcoin-kurier.de/"
+          },
+          {
+            "label": "Der Bitcoin Podcast",
+            "type": "URL",
+            "target": "https://www.youtube.com/@DerBitcoinPodcast/videos"
+          },
+          {
+            "label": "Bitcoin Insel",
+            "type": "URL",
+            "target": "https://www.youtube.com/@BitcoinInsel/videos"
+          },
+          {
+            "label": "Bitcoin  Hotel",
+            "type": "URL",
+            "target": "https://www.youtube.com/@BITCOIN-HOTEL/videos"
+          }
+        ]
+      ]
+    },
+    {
+      "label": "Videobearbeitung",
+      "type": "FOLDER",
+      "target": "",
+      "pages": [
+        [
+          {
+            "label": "Online video editor",
+            "type": "URL",
+            "target": "https://online-video-cutter.com/de/video-editor"
+          },
+          {
+            "label": "Capcut",
+            "type": "URL",
+            "target": "https://www.capcut.com/my-edit?from_page\u003dlanding_page"
+          },
+          {
+            "label": "Online-Umwandeln Video verkleinern",
+            "type": "URL",
+            "target": "https://video-verkleinern.online-umwandeln.de/"
+          },
+          null,
+          null,
+          {
+            "label": " Video hochladen",
+            "type": "URL",
+            "target": "https://streamable.com/"
+          },
+          {
+            "label": "Audio Cutter",
+            "type": "URL",
+            "target": "https://mp3cut.net/de/"
+          },
+          {
+            "label": "Audiodateien zusammenfügen",
+            "type": "URL",
+            "target": "https://clideo.com/de/merge-audio"
+          },
+          {
+            "label": "MP3-Kompressor",
+            "type": "URL",
+            "target": "https://www.freeconvert.com/de/mp3-compressor"
+          },
+          {
+            "label": "Audiokonverter",
+            "type": "URL",
+            "target": "https://online-audio-converter.com/de/"
+          },
+          {
+            "label": "MP3 Lautstärke erhöhen",
+            "type": "URL",
+            "target": "https://www.mp3louder.com/de/"
+          },
+          {
+            "label": "Grammatik- und Rechtschreibprüfung",
+            "type": "URL",
+            "target": "https://languagetool.org/de"
+          },
+          null
+        ]
+      ]
+    },
+    {
+      "label": "Noch anschauen",
+      "type": "FOLDER",
+      "target": "",
+      "pages": [
+        [
+          {
+            "label": " ChatGPT Codex ist UNGLAUBLICH! So benutzt du es als Anfänger",
+            "type": "URL",
+            "target": "https://www.youtube.com/watch?v\u003d98kIFt3cIsw"
+          },
+          {
+            "label": "Make-o-Rama 3D Druck",
+            "type": "URL",
+            "target": "https://www.youtube.com/@MAKEORAMA/videos"
+          },
+          {
+            "label": "MacBook Neo: Das iPad, das ich immer wollte!",
+            "type": "URL",
+            "target": "https://www.youtube.com/watch?v\u003dVY86n3nO9tY"
+          },
+          {
+            "label": "In der Falle | Das 3. Jahrtausend #129",
+            "type": "URL",
+            "target": "https://triggerfm.com/mediathek/?video\u003d1778256026199g0b"
+          },
+          {
+            "label": "Triggerfm Mediathek",
+            "type": "URL",
+            "target": "https://triggerfm.com/mediathek/?video\u003d1778256026199g0b"
+          },
+          {
+            "label": "Das Geheimnis meiner Produktivität im Büro",
+            "type": "URL",
+            "target": "https://www.youtube.com/watch?v\u003dWz4UO-LR1vw"
+          },
+          {
+            "label": "Vom Straßenmusiker zum Millionär: WAS MACHT EIG JOEY KELLY?",
+            "type": "URL",
+            "target": "https://www.youtube.com/watch?v\u003dY4jY5USNpRo"
+          },
+          {
+            "label": " Geld gewinnen: Wie ist es, plötzlich reich zu sein? I 37 Grad",
+            "type": "URL",
+            "target": "https://www.youtube.com/watch?v\u003dvCjcJofoDc8"
+          },
+          {
+            "label": " Was ist dran, an den Vorwürfen gegen HKCM?",
+            "type": "URL",
+            "target": "https://www.youtube.com/watch?v\u003dQWMehucVcww"
+          },
+          {
+            "label": " Die RAM-Krise ist schlimmer als du denkst...",
+            "type": "URL",
+            "target": "https://www.youtube.com/watch?v\u003dXk3mxlbf4Fk"
+          }
+        ]
+      ]
+    },
+    null,
+    null,
+    null,
     {
       "label": "Brave Browser",
       "type": "PROGRAM",
@@ -69,26 +361,200 @@
       "label": "Double Commander",
       "type": "PROGRAM",
       "target": "open \"/Applications/Double Commander.app\""
+    },
+    {
+      "label": "Obsidian",
+      "type": "PROGRAM",
+      "target": "open \"/Applications/Obsidian.app\""
+    },
+    {
+      "label": "Screenshot",
+      "type": "PROGRAM",
+      "target": "open /System/Applications/Utilities/Screenshot.app"
+    },
+    {
+      "label": "Netflix",
+      "type": "URL",
+      "target": "https://www.netflix.com"
+    },
+    {
+      "label": "Amazon Prime Video",
+      "type": "URL",
+      "target": "https://www.amazon.de/gp/video/storefront?ref_\u003dnav_cs_prime_video"
     }
   ],
   [
     {
-      "label": "Notes",
+      "label": "Einkaufen",
+      "type": "FOLDER",
+      "target": "",
+      "pages": [
+        [
+          {
+            "label": "Amazon",
+            "type": "URL",
+            "target": "https://www.amazon.de/ref\u003dnav_logo"
+          },
+          {
+            "label": "Ikea",
+            "type": "URL",
+            "target": "https://ikea.de"
+          },
+          {
+            "label": "Rapunzel",
+            "type": "URL",
+            "target": "https://www.rapunzel.de/"
+          },
+          {
+            "label": "Suessundclever",
+            "type": "URL",
+            "target": "https://suessundclever.de/"
+          },
+          {
+            "label": "Notebooksbilliger",
+            "type": "URL",
+            "target": "https://www.notebooksbilliger.de/"
+          },
+          {
+            "label": "Idealo",
+            "type": "URL",
+            "target": "https://www.idealo.de/"
+          },
+          {
+            "label": "Ebay",
+            "type": "URL",
+            "target": "https://www.ebay.de/"
+          },
+          {
+            "label": "Kleinanzeigen",
+            "type": "URL",
+            "target": "https://www.kleinanzeigen.de/"
+          },
+          {
+            "label": "Aliexpress De",
+            "type": "URL",
+            "target": "https://de.aliexpress.com/?gatewayAdapt\u003dglo2deu"
+          },
+          {
+            "label": "Dattelbär",
+            "type": "URL",
+            "target": "https://www.dattelbaer.com/"
+          },
+          {
+            "label": "Strumberger Imkerei",
+            "type": "URL",
+            "target": "https://www.strumberger-imkerei.de/"
+          },
+          {
+            "label": "Overmeyer Hofladen",
+            "type": "URL",
+            "target": "https://www.overmeyer-landbaukultur.de/unser-hof.html"
+          },
+          {
+            "label": "Supermarkt Prospekte",
+            "type": "URL",
+            "target": "https://www.kaufda.de/Hamburg/Discounter/p-c5"
+          }
+        ]
+      ]
+    },
+    {
+      "label": "SpeedTest",
+      "type": "FOLDER",
+      "target": "",
+      "pages": [
+        [
+          {
+            "label": "Speedtest",
+            "type": "URL",
+            "target": "https://www.speedtest.net/result/19196766237"
+          },
+          {
+            "label": "Cloudflare Speed",
+            "type": "URL",
+            "target": "https://speed.cloudflare.com/"
+          },
+          {
+            "label": "Fritz! Zack",
+            "type": "URL",
+            "target": "https://scope.avm.de/zack3g/zack.php?p\u003d5.20.146.0\u0026t\u003d0.6066736496646411"
+          },
+          {
+            "label": "Breitbandmessung Test",
+            "type": "URL",
+            "target": "https://www.breitbandmessung.de/test"
+          },
+          {
+            "label": "Speediness",
+            "type": "PROGRAM",
+            "target": "open \"/Applications/Speediness.app\""
+          }
+        ]
+      ]
+    },
+    {
+      "label": "Textbausteine",
+      "type": "FOLDER",
+      "target": "",
+      "pages": [
+        [
+          {
+            "label": "Guten Morgen, Ilona!",
+            "type": "COPY",
+            "target": "Guten Morgen, Ilona!"
+          },
+          {
+            "label": "Guten Morgen, Anna!",
+            "type": "COPY",
+            "target": "Guten Morgen, Anna!"
+          },
+          null,
+          null,
+          null,
+          {
+            "label": "Viele Grüße Martin",
+            "type": "COPY",
+            "target": "Viele Grüße\nMartin"
+          }
+        ]
+      ]
+    },
+    {
+      "label": "Router",
+      "type": "URL",
+      "target": "http://192.168.8.2/#/login"
+    },
+    {
+      "label": "Alle Störungen",
+      "type": "URL",
+      "target": "https://xn--allestrungen-9ib.de/"
+    },
+    {
+      "label": "Notizen",
       "type": "PROGRAM",
       "target": "open -a Notes"
     },
     {
-      "label": "Settings",
+      "label": "Amazon Kindle",
       "type": "PROGRAM",
-      "target": "open -a System\\ Settings"
+      "target": "open \"/Applications/Amazon Kindle.app\""
+    },
+    null,
+    null,
+    null
+  ],
+  [
+    {
+      "label": "MoneyMoney",
+      "type": "PROGRAM",
+      "target": "open \"/Applications/MoneyMoney.app\""
     },
     null,
     null,
     null,
-    {
-      "label": "Amazon Kindle",
-      "type": "PROGRAM",
-      "target": "open \"/Applications/Amazon Kindle.app\""
-    }
+    null,
+    null,
+    null,
+    null
   ]
 ]

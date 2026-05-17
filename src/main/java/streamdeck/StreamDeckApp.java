@@ -69,12 +69,16 @@ public class StreamDeckApp extends JFrame {
 
         gridPanel = new JPanel(new GridLayout(ROWS, COLS, 10, 10));
         gridPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
-        gridPanel.setOpaque(false);
+        gridPanel.setOpaque(true);
+        gridPanel.setBackground(new Color(50, 50, 55));
+        getContentPane().setBackground(new Color(50, 50, 55));
         add(gridPanel, BorderLayout.CENTER);
 
         JLabel versionLabel = new JLabel("V1.0 vom 16.05.26", SwingConstants.CENTER);
         versionLabel.setFont(versionLabel.getFont().deriveFont(9f));
         versionLabel.setForeground(new Color(150, 150, 150));
+        versionLabel.setBackground(new Color(50, 50, 55));
+        versionLabel.setOpaque(true);
         versionLabel.setBorder(BorderFactory.createEmptyBorder(0, 0, 6, 0));
         add(versionLabel, BorderLayout.SOUTH);
 
@@ -90,18 +94,44 @@ public class StreamDeckApp extends JFrame {
                 protected void paintComponent(Graphics g) {
                     Graphics2D g2 = (Graphics2D) g.create();
                     g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                    boolean empty = Boolean.TRUE.equals(getClientProperty("empty"));
+                    if (empty) {
+                        g2.setPaint(new Color(55, 55, 60));
+                        g2.fillRoundRect(0, 0, getWidth() - 1, getHeight() - 1, 14, 14);
+                        g2.dispose();
+                        super.paintComponent(g);
+                        return;
+                    }
                     boolean pressed = getModel().isPressed();
-                    Paint bg = pressed
-                        ? new GradientPaint(0, 0, new Color(210, 210, 215), 0, getHeight(), new Color(185, 185, 190))
-                        : new GradientPaint(0, 0, new Color(248, 248, 250), 0, getHeight(), new Color(225, 225, 230));
+                    boolean hovered = Boolean.TRUE.equals(getClientProperty("hovered"));
+                    Paint bg;
+                    if (pressed)
+                        bg = new GradientPaint(0, 0, new Color(210, 210, 215), 0, getHeight(), new Color(185, 185, 190));
+                    else if (hovered)
+                        bg = new GradientPaint(0, 0, new Color(230, 245, 255), 0, getHeight(), new Color(200, 225, 245));
+                    else
+                        bg = new GradientPaint(0, 0, new Color(248, 248, 250), 0, getHeight(), new Color(225, 225, 230));
                     g2.setPaint(bg);
                     g2.fillRoundRect(0, 0, getWidth() - 1, getHeight() - 1, 14, 14);
                     g2.dispose();
                     super.paintComponent(g);
                 }
             };
+            btn.addMouseListener(new java.awt.event.MouseAdapter() {
+                @Override
+                public void mouseEntered(java.awt.event.MouseEvent e) {
+                    ((JComponent)e.getComponent()).putClientProperty("hovered", true);
+                    e.getComponent().repaint();
+                }
+                @Override
+                public void mouseExited(java.awt.event.MouseEvent e) {
+                    ((JComponent)e.getComponent()).putClientProperty("hovered", false);
+                    e.getComponent().repaint();
+                }
+            });
             btn.setPreferredSize(new Dimension(BUTTON_SIZE, BUTTON_SIZE));
             btn.setFont(btn.getFont().deriveFont(Font.BOLD, 10f));
+            btn.setForeground(Color.BLACK);
             btn.setVerticalTextPosition(SwingConstants.BOTTOM);
             btn.setHorizontalTextPosition(SwingConstants.CENTER);
             btn.setIconTextGap(4);
@@ -296,12 +326,14 @@ public class StreamDeckApp extends JFrame {
             btn.setFont(btn.getFont().deriveFont(28f));
             btn.setEnabled(true);
             btn.setIcon(null);
+            btn.putClientProperty("empty", false);
             return;
         }
 
         List<ButtonConfig> btns = currentPageBtns();
         int pageIdx = gridToPageIndex(gridIdx);
         if (pageIdx < 0) {
+            btn.putClientProperty("empty", false);
             if (currentFolder != null && ((currentPage == 0 && gridIdx == BOTTOM_ROW_START) || (currentPage > 0 && gridIdx == COLS * ROWS - 2))) {
                 btn.setFont(btn.getFont().deriveFont(48f));
                 btn.setText("\u2190");
@@ -322,6 +354,7 @@ public class StreamDeckApp extends JFrame {
         }
 
         ButtonConfig cfg = pageIdx < btns.size() ? btns.get(pageIdx) : null;
+        btn.putClientProperty("empty", cfg == null);
         if (cfg != null) {
             btn.setIcon(null);
             btn.setText("<html><center>" + cfg.getLabel().replace("\n", "<br>") + "</center></html>");
@@ -342,10 +375,12 @@ public class StreamDeckApp extends JFrame {
             }
         } else {
             btn.setText("");
-            btn.setToolTipText("Unbelegt");
+            btn.setToolTipText(null);
             btn.setIcon(null);
             btn.setEnabled(true);
             btn.setBorder(null);
+            btn.putClientProperty("empty", true);
+            btn.putClientProperty("hovered", false);
         }
     }
 
