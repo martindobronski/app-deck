@@ -1,39 +1,39 @@
 # App Deck
 
-Eine in Java Swing entwickelte Desktop-Anwendung fur macOS, die als frei konfigurierbare Schaltflachen-Leiste (a la Stream Deck) fungiert.
+Eine in Java Swing entwickelte Desktop-Anwendung für macOS, die als frei konfigurierbare Schaltflächen-Leiste (à la Stream Deck) fungiert.
 
 ## Features
 
-- **6 x 4 Raster** mit 24 quadratischen Schaltflachen pro Seite
-- **Mehrere Seiten** mit Navigation (vorwarts/ruckwarts)
-- **URL-Buttons** – offnen Webseiten im Browser, inkl. Favicon
+- **6 x 4 Raster** mit 24 quadratischen Schaltflächen pro Seite
+- **Mehrere Seiten** mit Navigation (vorwärts/rückwärts)
+- **URL-Buttons** – öffnen Webseiten im Browser, inkl. Favicon
 - **Programm-Buttons** – starten macOS-Apps oder beliebige Kommandos
-- **Ordner-Buttons** – verschachtelte Unterseiten fur Gruppen
+- **Ordner-Buttons** – verschachtelte Unterseiten für Gruppen
 - **COPY-Buttons** – kopieren Text in die Zwischenablage
-- **Datei-Buttons** – offnen Dateien und Ordner
+- **Datei-Buttons** – öffnen Dateien und Ordner
 - **Drag & Drop** – Buttons neu anordnen, in Ordner verschieben oder auf andere Seiten ziehen
-- **Hover-Effekt** – blaulicher Highlight beim Uberfahren mit der Maus
-- **Laufende Apps erkennen** – gruner Rahmen bei aktiven Programmen
-- **App per Langdruck beenden** – >800ms gedruckt halten
+- **Hover-Effekt** – bläulicher Highlight beim Überfahren mit der Maus
+- **Laufende Apps erkennen** – grüner Rahmen bei aktiven Programmen
+- **App per Langdruck beenden** – >800ms gedrückt halten
 - **App-Icons** – automatisch aus .app-Bundles extrahiert (macOS)
 - **JSON-Konfiguration** – wird beim Bearbeiten automatisch gespeichert
 - **Dunkles Design** – dunkler Hintergrund (35,35,40→50,50,55) mit hellen Buttons (248,248,250→225,225,230)
 - **Eigenes App-Icon** – farbiges Raster auf dunklem Hintergrund (PNG + ICNS)
-- **YouTube-Update-Prufung** – periodische Suche nach neuen Videos, "neu"-Badge, manueller Check uber Menü
+- **YouTube-Update-Prüfung** – periodische Suche nach neuen Videos, "neu"-Badge, manueller Check über Menü
 - **Suchdialog** – Cmd+F durchsucht alle Seiten nach Label/Ziel, Navigation mit Pfeiltasten, blinkende Markierung
-- **Type-to-Search** – Tastatureingabe bei nicht-fokussierten Textfeldern offnet Suchdialog
-- **Pfeiltasten-Navigation** zwischen Buttons, Enter fuhrt Aktion aus
+- **Type-to-Search** – Tastatureingabe bei nicht-fokussierten Textfeldern öffnet Suchdialog
+- **Pfeiltasten-Navigation** zwischen Buttons, Enter führt Aktion aus
 - **Fokus-Ring** – gold/orange gestrichelter Rahmen um fokussierten Button
-- **ESC-Rucknavigation** zur vorherigen Seite bzw. Ordner-Ebene
-- **Menuleiste** – App Desk (Info, YouTube-Prufung, Beenden) und Hilfe (Dokumentation)
-- **Konfigurationsdialog** – linksbundige Felder mit 15px Rand, mittig zentrierte OK/Abbrechen-Buttons
-- **YouTube-Erkennung** – Checkbox "Auf neue Videos prufen" erscheint nur bei YouTube-URLs und ist automatisch aktiviert
+- **ESC-Rücknavigation** zur vorherigen Seite bzw. Ordner-Ebene
+- **Menüleiste** – App Desk (Info, YouTube-Prüfung, Beenden) und Hilfe (Dokumentation)
+- **Konfigurationsdialog** – linksbündige Felder mit 15px Rand, mittig zentrierte OK/Abbrechen-Buttons
+- **YouTube-Erkennung** – Checkbox "Auf neue Videos prüfen" erscheint nur bei YouTube-URLs und ist automatisch aktiviert
 - **Logging** – `appdeck.log` mit Zeitstempeln, Rotation bei 5 MB
 
 ## Voraussetzungen
 
 - Java 21+
-- macOS (fur native App-Icons, `sips`, `osascript`)
+- macOS (für native App-Icons, `sips`, `osascript`)
 
 ## Verwendung
 
@@ -73,4 +73,4 @@ Jede Seite ist ein Array mit bis zu 22 konfigurierbaren Buttons (+ 2 Navigations
 
 ## Weitere Informationen
 
-Die ausfuhrliche technische Dokumentation befindet sich in `Dokumentation.md` / `Dokumentation.pdf`.
+Die ausführliche technische Dokumentation befindet sich in `Dokumentation.md` / `Dokumentation.pdf`.
