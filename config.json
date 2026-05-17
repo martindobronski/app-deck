@@ -93,7 +93,7 @@
             "type": "URL",
             "target": "https://www.amazon.de/gp/video/detail/B0CPVBDH6F/ref\u003datv_hm_sto_c_puV8Nn_brws_17_6?jic\u003d8%7CEgR0dm9k",
             "check": false,
-            "hasNew": false
+            "hasNew": true
           },
           {
             "label": " ChatGPT Codex ist UNGLAUBLICH! So benutzt du es als Anfänger",
@@ -101,29 +101,35 @@
             "target": "https://www.youtube.com/watch?v\u003d98kIFt3cIsw",
             "check": true,
             "latestVideoId": "98kIFt3cIsw",
-            "hasNew": false
+            "hasNew": true
           },
           {
             "label": "M4 Mac Mini Langzeit Review",
             "type": "URL",
             "target": "https://www.youtube.com/watch?v\u003d6gnR46gbaVM\u0026pp\u003dugUEEgJkZQ%3D%3D",
             "check": false,
-            "hasNew": false
+            "hasNew": true
           },
-          null,
+          {
+            "label": "Wird sich das Hantavirus ausbreiten? Wichtige Termine",
+            "type": "URL",
+            "target": "https://www.youtube.com/watch?v\u003dt1OdoiwTjVs",
+            "check": true,
+            "hasNew": true
+          },
           {
             "label": "In der Falle | Das 3. Jahrtausend #129",
             "type": "URL",
             "target": "https://triggerfm.com/mediathek/?video\u003d1778256026199g0b",
             "check": false,
-            "hasNew": false
+            "hasNew": true
           },
           {
             "label": "Triggerfm Mediathek",
             "type": "URL",
             "target": "https://triggerfm.com/mediathek/?video\u003d1778256026199g0b",
             "check": false,
-            "hasNew": false
+            "hasNew": true
           },
           {
             "label": "Vom Straßenmusiker zum Millionär: WAS MACHT EIG JOEY KELLY?",
@@ -131,7 +137,7 @@
             "target": "https://www.youtube.com/watch?v\u003dY4jY5USNpRo",
             "check": true,
             "latestVideoId": "Y4jY5USNpRo",
-            "hasNew": false
+            "hasNew": true
           },
           {
             "label": " Geld gewinnen: Wie ist es, plötzlich reich zu sein? I 37 Grad",
@@ -139,7 +145,7 @@
             "target": "https://www.youtube.com/watch?v\u003dvCjcJofoDc8",
             "check": true,
             "latestVideoId": "vCjcJofoDc8",
-            "hasNew": false
+            "hasNew": true
           },
           {
             "label": " Was ist dran, an den Vorwürfen gegen HKCM?",
@@ -147,7 +153,7 @@
             "target": "https://www.youtube.com/watch?v\u003dQWMehucVcww",
             "check": true,
             "latestVideoId": "QWMehucVcww",
-            "hasNew": false
+            "hasNew": true
           },
           {
             "label": " Die RAM-Krise ist schlimmer als du denkst...",
@@ -155,7 +161,7 @@
             "target": "https://www.youtube.com/watch?v\u003dXk3mxlbf4Fk",
             "check": true,
             "latestVideoId": "Xk3mxlbf4Fk",
-            "hasNew": false
+            "hasNew": true
           },
           {
             "label": "Kostenlos Videos schneiden wie ein PRO in 2026 – DaVinci Resolve Einstieg",
@@ -163,7 +169,7 @@
             "target": "https://www.youtube.com/watch?v\u003dZrZXFRZ-XE8",
             "check": true,
             "latestVideoId": "ZrZXFRZ-XE8",
-            "hasNew": false
+            "hasNew": true
           },
           null,
           null
@@ -383,7 +389,7 @@
             "target": "https://www.youtube.com/@RafaelZeier/videos",
             "check": true,
             "latestVideoId": "hRu1g8rkOws",
-            "hasNew": false
+            "hasNew": true
           },
           {
             "label": "37 Grad",
@@ -423,7 +429,7 @@
             "target": "https://www.youtube.com/@Actuarium/videos",
             "check": true,
             "latestVideoId": "gHMSB0WSF6k",
-            "hasNew": false
+            "hasNew": true
           },
           {
             "label": "Jasmin Kosubek",
@@ -431,7 +437,7 @@
             "target": "https://www.youtube.com/@JasminKosubekOriginal/videos",
             "check": true,
             "latestVideoId": "yHlZ96KiacA",
-            "hasNew": false
+            "hasNew": true
           },
           {
             "label": "InfraRot Medien",

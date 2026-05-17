@@ -661,12 +661,21 @@ public class StreamDeckApp extends JFrame {
 
         List<ButtonConfig> btns = currentPageBtns();
         if (pageIdx < btns.size() && btns.get(pageIdx) != null) {
+            ButtonConfig cfg = btns.get(pageIdx);
             JMenuItem clearItem = new JMenuItem("Entfernen");
             clearItem.addActionListener(ev -> {
                 btns.set(pageIdx, null);
                 saveAndRefresh();
             });
             popup.add(clearItem);
+            popup.addSeparator();
+            JMenuItem markItem = new JMenuItem("Als neu markieren");
+            markItem.addActionListener(ev -> {
+                cfg.setHasNew(true);
+                try { ConfigLoader.save(configPath, pages); } catch (IOException ex) {}
+                updateAllButtons();
+            });
+            popup.add(markItem);
         }
 
         popup.show(e.getComponent(), e.getX(), e.getY());
