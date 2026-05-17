@@ -1,29 +1,29 @@
 # App Deck
 
-Ein Java-Swing-Programm, das wie ein Stream Deck funktioniert – mit konfigurierbaren Schaltflächen für URLs und Programme.
+Eine in Java Swing entwickelte Desktop-Anwendung fur macOS, die als frei konfigurierbare Schaltflachen-Leiste (a la Stream Deck) fungiert.
 
-## Funktionen
+## Features
 
-- **5 × 3 Raster** mit 15 quadratischen Schaltflächen pro Seite
-- **Mehrere Seiten** mit ◀/▶-Navigation (unten links/rechts)
-- **URL-Buttons** – öffnen Webseiten im Browser, inkl. Favicon als Icon
+- **6 x 4 Raster** mit 24 quadratischen Schaltflachen pro Seite
+- **Mehrere Seiten** mit Navigation (vorwarts/ruckwarts)
+- **URL-Buttons** – offnen Webseiten im Browser, inkl. Favicon
 - **Programm-Buttons** – starten macOS-Apps oder beliebige Kommandos
+- **Ordner-Buttons** – verschachtelte Unterseiten fur Gruppen
+- **COPY-Buttons** – kopieren Text in die Zwischenablage
+- **Drag & Drop** – Buttons neu anordnen, in Ordner verschieben
+- **Hover-Effekt** – blaulicher Highlight beim Uberfahren mit der Maus
+- **Laufende Apps erkennen** – gruner Rahmen bei aktiven Programmen
+- **App per Langdruck beenden** – >800ms gedruckt halten
+- **App-Icons** – automatisch aus .app-Bundles extrahiert (macOS)
 - **JSON-Konfiguration** – wird beim Bearbeiten automatisch gespeichert
-- **Bearbeiten per Rechtsklick** – Label, Typ (URL/PROGRAM) und Ziel frei konfigurierbar
-- **Label-Vorschlag** – wird automatisch aus URL-Domain, Dateipfad (`file://`) oder Programmname extrahiert
-- **Dateiauswahldialog** mit Tastaturnavigation (Buchstaben springen zum passenden Eintrag)
-- **Drag & Drop** – Buttons durch Ziehen neu anordnen
-- **Laufende Apps erkennen** – grüner Rahmen, wenn das Programm aktiv ist (auch bei abweichenden Prozessnamen, z. B. `Code` für VS Code)
-- **App per Langdruck beenden** – Button > 800ms gedrückt halten → App wird beendet
-- **App-Icons** – werden automatisch aus .app-Bundles extrahiert (macOS)
-- **SVG-Favicons** – lokale `favicon.svg` im Verzeichnis wird als Icon verwendet
-- **3D-Optik** – abgerundete Ecken, Gradient, Schlagschatten
-- **Programm-Icon** – eigenes App-Icon (PNG + ICNS) mit 5×3-farbigem Raster als visueller Wiedererkennung (wird als Ressource im JAR mitgeliefert und als Dock-Icon via Taskbar gesetzt)
+- **Konfigurierbare leere Buttons** – dezent dunkel auf dunklem Hintergrund
+- **Dunkles Design** – dunkelgrauer Hintergrund (50,50,55) hinter den Buttons
+- **Eigenes App-Icon** – 5x3 farbiges Raster auf dunklem Hintergrund (PNG + ICNS)
 
 ## Voraussetzungen
 
 - Java 21+
-- macOS (für native App-Icons und `sips`-Konvertierung)
+- macOS (fur native App-Icons, `sips`, `osascript`)
 
 ## Verwendung
 
@@ -32,34 +32,35 @@ mvn package -q
 java -jar target/streamdeck-1.0-SNAPSHOT.jar [config.json]
 ```
 
-**macOS .app Bundle** (für korrekte Anzeige im Dock):
+**macOS .app Bundle:**
 
 ```bash
 ./build-app.sh
 open "App Deck.app"
 ```
 
-Die Konfiguration wird beim ersten Start automatisch in `~/Library/Application Support/App Deck/config.json` angelegt.
-
-## Icon
-
-`icons/app-icon.icns` und `icons/app-icon.png` können für ein macOS-.app-Bundle verwendet werden.
-Zum Neugenerieren: `icons/make-icon.sh` ausführen.
-
 ## Konfiguration
 
-Die Konfiguration liegt im JSON-Format:
+Die Konfiguration liegt im JSON-Format (Mehrseiten-Array):
 
 ```json
 [
   [
     { "label": "GitHub", "type": "URL", "target": "https://github.com" },
-    { "label": "Terminal", "type": "PROGRAM", "target": "open -a Terminal" }
+    { "label": "Terminal", "type": "PROGRAM", "target": "open -a Terminal" },
+    { "label": "Notizen", "type": "PROGRAM", "target": "open -a Notes" }
   ],
   [
-    { "label": "Notizen", "type": "PROGRAM", "target": "open -a Notes" }
+    { "label": "Passwort", "type": "COPY", "target": "meinPasswort123" },
+    { "label": "Projekt", "type": "FOLDER", "target": "", "pages": [
+      [ { "label": "Build", "type": "URL", "target": "https://jenkins.example.com" } ]
+    ]}
   ]
 ]
 ```
 
-Jede Seite ist ein Array mit bis zu 13 Buttons. Alte flache Formate (einzelnes Array) werden automatisch erkannt und auf Seiten aufgeteilt.
+Jede Seite ist ein Array mit bis zu 22 konfigurierbaren Buttons (+ 2 Navigationsbuttons). Alte flache Formate werden automatisch erkannt und migriert.
+
+## Weitere Informationen
+
+Die ausfuhrliche technische Dokumentation befindet sich in `Dokumentation.md` / `Dokumentation.pdf`.
