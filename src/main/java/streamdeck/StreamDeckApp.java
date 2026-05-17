@@ -84,17 +84,23 @@ public class StreamDeckApp extends JFrame {
 
         JMenuBar menuBar = new JMenuBar();
         JMenu appMenu = new JMenu("App Desk");
+        appMenu.setMnemonic('A');
         JMenuItem aboutItem = new JMenuItem("Über App Desk");
+        aboutItem.setMnemonic('b');
         aboutItem.addActionListener(e -> JOptionPane.showMessageDialog(this,
             "App Desk V1.0\nEin Stream-Deck-artiger Schaltflächenstarter für macOS.\n\nErstellt am 16.05.26",
             "Über App Desk", JOptionPane.INFORMATION_MESSAGE));
         appMenu.add(aboutItem);
         appMenu.addSeparator();
-        JMenuItem searchItem = new JMenuItem("Suche mit Strg + F");
+        JMenuItem searchItem = new JMenuItem("Suche");
+        searchItem.setMnemonic('S');
+        searchItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F, Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx()));
         searchItem.addActionListener(e -> showSearchDialog(""));
         appMenu.add(searchItem);
         appMenu.addSeparator();
         JMenuItem checkItem = new JMenuItem("Auf neue YouTube-Videos prüfen");
+        checkItem.setMnemonic('P');
+        checkItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Y, Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx()));
         checkItem.addActionListener(e -> {
             setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
             scheduler.submit(() -> {
@@ -116,17 +122,24 @@ public class StreamDeckApp extends JFrame {
         appMenu.add(checkItem);
         appMenu.addSeparator();
         JMenuItem backupItem = new JMenuItem("Konfiguration sichern");
+        backupItem.setMnemonic('K');
+        backupItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_B, Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx()));
         backupItem.addActionListener(e -> backupConfig());
         appMenu.add(backupItem);
         appMenu.addSeparator();
         JMenuItem exitItem = new JMenuItem("App Desk beenden");
+        exitItem.setMnemonic('e');
+        exitItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Q, Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx()));
         exitItem.addActionListener(e -> System.exit(0));
         appMenu.add(exitItem);
         menuBar.add(Box.createHorizontalStrut(6));
         menuBar.add(appMenu);
         menuBar.add(Box.createHorizontalGlue());
         JMenu helpMenu = new JMenu("Hilfe");
+        helpMenu.setMnemonic('H');
         JMenuItem docsItem = new JMenuItem("Dokumentation anzeigen");
+        docsItem.setMnemonic('D');
+        docsItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_D, Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx()));
         docsItem.addActionListener(e -> {
             try {
                 File pdf = new File("Dokumentation.pdf");
