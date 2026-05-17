@@ -115,6 +115,10 @@ public class StreamDeckApp extends JFrame {
         });
         appMenu.add(checkItem);
         appMenu.addSeparator();
+        JMenuItem backupItem = new JMenuItem("Konfiguration sichern");
+        backupItem.addActionListener(e -> backupConfig());
+        appMenu.add(backupItem);
+        appMenu.addSeparator();
         JMenuItem exitItem = new JMenuItem("App Desk beenden");
         exitItem.addActionListener(e -> System.exit(0));
         appMenu.add(exitItem);
@@ -1017,6 +1021,30 @@ public class StreamDeckApp extends JFrame {
     private void startVideoChecker() {
         log("YouTube-Prüfung gestartet (Intervall: " + CHECK_INTERVAL_MINUTES + " Minuten)");
         scheduler.scheduleWithFixedDelay(this::checkAllUrls, 10, CHECK_INTERVAL_MINUTES * 60L, TimeUnit.SECONDS);
+    }
+
+    private void backupConfig() {
+        try {
+            File src = new File(configPath);
+            if (!src.exists()) {
+                JOptionPane.showMessageDialog(this,
+                    "Keine Konfigurationsdatei gefunden: " + configPath,
+                    "Fehler", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+            File bakDir = new File(src.getParentFile(), "bak");
+            bakDir.mkdirs();
+            String timestamp = new java.text.SimpleDateFormat("yyyyMMdd_HHmmss").format(new java.util.Date());
+            File dst = new File(bakDir, timestamp + "_config.json");
+            java.nio.file.Files.copy(src.toPath(), dst.toPath(), java.nio.file.StandardCopyOption.COPY_ATTRIBUTES);
+            JOptionPane.showMessageDialog(this,
+                "Konfiguration gesichert nach:\n" + dst.getAbsolutePath(),
+                "Sicherung erfolgreich", JOptionPane.INFORMATION_MESSAGE);
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(this,
+                "Fehler beim Sichern: " + ex.getMessage(),
+                "Fehler", JOptionPane.ERROR_MESSAGE);
+        }
     }
 
     private int checkAllUrls() {

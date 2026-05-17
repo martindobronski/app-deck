@@ -83,124 +83,88 @@
       "hasNew": false
     },
     {
-      "label": "YouTube",
+      "label": "Noch anschauen",
       "type": "FOLDER",
       "target": "",
       "pages": [
         [
           {
-            "label": "Youtube Startseite",
+            "label": "Guardians of the Galaxy",
             "type": "URL",
-            "target": "https://www.youtube.com/",
-            "check": true,
+            "target": "https://www.amazon.de/gp/video/detail/B0CPVBDH6F/ref\u003datv_hm_sto_c_puV8Nn_brws_17_6?jic\u003d8%7CEgR0dm9k",
+            "check": false,
             "hasNew": false
           },
           {
-            "label": "Willkommen bei den Hartmanns",
+            "label": " ChatGPT Codex ist UNGLAUBLICH! So benutzt du es als Anfänger",
             "type": "URL",
-            "target": "https://www.youtube.com/@willkommenbeidenhartmanns78/videos",
+            "target": "https://www.youtube.com/watch?v\u003d98kIFt3cIsw",
             "check": true,
-            "latestVideoId": "ur1iP4bqYdY",
+            "latestVideoId": "98kIFt3cIsw",
             "hasNew": false
           },
           {
-            "label": "{ungeskriptet} by Ben",
+            "label": "M4 Mac Mini Langzeit Review",
             "type": "URL",
-            "target": "https://www.youtube.com/@ben_ungeskriptet/videos",
-            "check": true,
-            "latestVideoId": "0_8jRNb0_pc",
-            "hasNew": false
-          },
-          {
-            "label": "Salim Samatou",
-            "type": "URL",
-            "target": "https://www.youtube.com/@SalimSamatou1/videos",
-            "check": true,
-            "latestVideoId": "dYHtyCBtARI",
-            "hasNew": false
-          },
-          {
-            "label": "Die Weltwoche",
-            "type": "URL",
-            "target": "https://www.youtube.com/@die.weltwoche/videos",
-            "check": true,
-            "latestVideoId": "Vey3nY8oKQs",
-            "hasNew": false
-          },
-          {
-            "label": "Rafael Zeier",
-            "type": "URL",
-            "target": "https://www.youtube.com/@RafaelZeier/videos",
-            "check": true,
-            "latestVideoId": "hRu1g8rkOws",
-            "hasNew": false
-          },
-          {
-            "label": "37 Grad",
-            "type": "URL",
-            "target": "https://www.youtube.com/@37Grad/videos",
-            "check": true,
-            "latestVideoId": "9juJnl0Ko5M",
-            "hasNew": false
-          },
-          {
-            "label": "Zeitplanerin",
-            "type": "URL",
-            "target": "https://www.youtube.com/@zeitplanerin/videos",
-            "check": true,
-            "latestVideoId": "yCM7mv6YVQM",
-            "hasNew": false
-          },
-          {
-            "label": "Jasmin Gnu",
-            "type": "URL",
-            "target": "https://www.youtube.com/@JasminGnu/videos",
-            "check": true,
-            "latestVideoId": "ALDU18FPb5Q",
-            "hasNew": false
-          },
-          {
-            "label": "Make-o-Rama 3D Druck",
-            "type": "URL",
-            "target": "https://www.youtube.com/@MAKEORAMA/videos",
-            "check": true,
-            "latestVideoId": "bt-DT0k1dYU",
-            "hasNew": false
-          },
-          {
-            "label": "Actuarium",
-            "type": "URL",
-            "target": "https://www.youtube.com/@Actuarium/videos",
-            "check": true,
-            "latestVideoId": "gHMSB0WSF6k",
-            "hasNew": false
-          },
-          {
-            "label": "Jasmin Kosubek",
-            "type": "URL",
-            "target": "https://www.youtube.com/@JasminKosubekOriginal/videos",
-            "check": true,
-            "latestVideoId": "yHlZ96KiacA",
-            "hasNew": false
-          },
-          {
-            "label": "InfraRot Medien",
-            "type": "URL",
-            "target": "https://www.youtube.com/@InfraRotSichtinsDunkel/videos",
-            "check": true,
-            "latestVideoId": "Wod0-5azv5M",
-            "hasNew": false
-          },
-          {
-            "label": "ink harmony",
-            "type": "URL",
-            "target": "https://www.youtube.com/@InkHarmony/videos",
-            "check": true,
-            "latestVideoId": "_zE2RgybymA",
+            "target": "https://www.youtube.com/watch?v\u003d6gnR46gbaVM\u0026pp\u003dugUEEgJkZQ%3D%3D",
+            "check": false,
             "hasNew": false
           },
           null,
-          null,
+          {
+            "label": "In der Falle | Das 3. Jahrtausend #129",
+            "type": "URL",
+            "target": "https://triggerfm.com/mediathek/?video\u003d1778256026199g0b",
+            "check": false,
+            "hasNew": false
+          },
+          {
+            "label": "Triggerfm Mediathek",
+            "type": "URL",
+            "target": "https://triggerfm.com/mediathek/?video\u003d1778256026199g0b",
+            "check": false,
+            "hasNew": false
+          },
+          {
+            "label": "Vom Straßenmusiker zum Millionär: WAS MACHT EIG JOEY KELLY?",
+            "type": "URL",
+            "target": "https://www.youtube.com/watch?v\u003dY4jY5USNpRo",
+            "check": true,
+            "latestVideoId": "Y4jY5USNpRo",
+            "hasNew": false
+          },
+          {
+            "label": " Geld gewinnen: Wie ist es, plötzlich reich zu sein? I 37 Grad",
+            "type": "URL",
+            "target": "https://www.youtube.com/watch?v\u003dvCjcJofoDc8",
+            "check": true,
+            "latestVideoId": "vCjcJofoDc8",
+            "hasNew": false
+          },
+          {
+            "label": " Was ist dran, an den Vorwürfen gegen HKCM?",
+            "type": "URL",
+            "target": "https://www.youtube.com/watch?v\u003dQWMehucVcww",
+            "check": true,
+            "latestVideoId": "QWMehucVcww",
+            "hasNew": false
+          },
+          {
+            "label": " Die RAM-Krise ist schlimmer als du denkst...",
+            "type": "URL",
+            "target": "https://www.youtube.com/watch?v\u003dXk3mxlbf4Fk",
+            "check": true,
+            "latestVideoId": "Xk3mxlbf4Fk",
+            "hasNew": false
+          },
+          {
+            "label": "Kostenlos Videos schneiden wie ein PRO in 2026 – DaVinci Resolve Einstieg",
+            "type": "URL",
+            "target": "https://www.youtube.com/watch?v\u003dZrZXFRZ-XE8",
+            "check": true,
+            "latestVideoId": "ZrZXFRZ-XE8",
+            "hasNew": false
+          },
           null,
           null
         ]
@@ -360,8 +324,8 @@
             "type": "URL",
             "target": "https://www.youtube.com/@BITCOIN-HOTEL/videos",
             "check": true,
-            "latestVideoId": "UWIm6uynEeo",
-            "hasNew": false
+            "latestVideoId": "cqbuIIYChV4",
+            "hasNew": true
           }
         ]
       ],
@@ -369,88 +333,131 @@
       "hasNew": false
     },
     {
-      "label": "Noch anschauen",
+      "label": "YouTube",
       "type": "FOLDER",
       "target": "",
       "pages": [
         [
           {
-            "label": "Guardians of the Galaxy",
+            "label": "Youtube Startseite",
             "type": "URL",
-            "target": "https://www.amazon.de/gp/video/detail/B0CPVBDH6F/ref\u003datv_hm_sto_c_puV8Nn_brws_17_6?jic\u003d8%7CEgR0dm9k",
-            "check": false,
-            "hasNew": false
-          },
-          {
-            "label": " ChatGPT Codex ist UNGLAUBLICH! So benutzt du es als Anfänger",
-            "type": "URL",
-            "target": "https://www.youtube.com/watch?v\u003d98kIFt3cIsw",
+            "target": "https://www.youtube.com/",
             "check": true,
-            "latestVideoId": "98kIFt3cIsw",
             "hasNew": false
           },
           {
-            "label": "M4 Mac Mini Langzeit Review",
+            "label": "Willkommen bei den Hartmanns",
             "type": "URL",
-            "target": "https://www.youtube.com/watch?v\u003d6gnR46gbaVM\u0026pp\u003dugUEEgJkZQ%3D%3D",
-            "check": false,
+            "target": "https://www.youtube.com/@willkommenbeidenhartmanns78/videos",
+            "check": true,
+            "latestVideoId": "ur1iP4bqYdY",
+            "hasNew": false
+          },
+          {
+            "label": "{ungeskriptet} by Ben",
+            "type": "URL",
+            "target": "https://www.youtube.com/@ben_ungeskriptet/videos",
+            "check": true,
+            "latestVideoId": "0_8jRNb0_pc",
+            "hasNew": false
+          },
+          {
+            "label": "Salim Samatou",
+            "type": "URL",
+            "target": "https://www.youtube.com/@SalimSamatou1/videos",
+            "check": true,
+            "latestVideoId": "dYHtyCBtARI",
+            "hasNew": false
+          },
+          {
+            "label": "Die Weltwoche",
+            "type": "URL",
+            "target": "https://www.youtube.com/@die.weltwoche/videos",
+            "check": true,
+            "latestVideoId": "Vey3nY8oKQs",
+            "hasNew": false
+          },
+          {
+            "label": "Rafael Zeier",
+            "type": "URL",
+            "target": "https://www.youtube.com/@RafaelZeier/videos",
+            "check": true,
+            "latestVideoId": "hRu1g8rkOws",
+            "hasNew": false
+          },
+          {
+            "label": "37 Grad",
+            "type": "URL",
+            "target": "https://www.youtube.com/@37Grad/videos",
+            "check": true,
+            "latestVideoId": "9juJnl0Ko5M",
+            "hasNew": false
+          },
+          {
+            "label": "Zeitplanerin",
+            "type": "URL",
+            "target": "https://www.youtube.com/@zeitplanerin/videos",
+            "check": true,
+            "latestVideoId": "yCM7mv6YVQM",
+            "hasNew": false
+          },
+          {
+            "label": "Jasmin Gnu",
+            "type": "URL",
+            "target": "https://www.youtube.com/@JasminGnu/videos",
+            "check": true,
+            "latestVideoId": "ALDU18FPb5Q",
+            "hasNew": false
+          },
+          {
+            "label": "Make-o-Rama 3D Druck",
+            "type": "URL",
+            "target": "https://www.youtube.com/@MAKEORAMA/videos",
+            "check": true,
+            "latestVideoId": "bt-DT0k1dYU",
+            "hasNew": false
+          },
+          {
+            "label": "Actuarium",
+            "type": "URL",
+            "target": "https://www.youtube.com/@Actuarium/videos",
+            "check": true,
+            "latestVideoId": "gHMSB0WSF6k",
+            "hasNew": false
+          },
+          {
+            "label": "Jasmin Kosubek",
+            "type": "URL",
+            "target": "https://www.youtube.com/@JasminKosubekOriginal/videos",
+            "check": true,
+            "latestVideoId": "yHlZ96KiacA",
+            "hasNew": false
+          },
+          {
+            "label": "InfraRot Medien",
+            "type": "URL",
+            "target": "https://www.youtube.com/@InfraRotSichtinsDunkel/videos",
+            "check": true,
+            "latestVideoId": "Wod0-5azv5M",
+            "hasNew": false
+          },
+          {
+            "label": "ink harmony",
+            "type": "URL",
+            "target": "https://www.youtube.com/@InkHarmony/videos",
+            "check": true,
+            "latestVideoId": "_zE2RgybymA",
+            "hasNew": false
+          },
+          {
+            "label": "gamesoftruth 2",
+            "type": "URL",
+            "target": "https://www.youtube.com/@gamesoftruth2/videos",
+            "check": true,
+            "latestVideoId": "-GZyxTz5cuE",
             "hasNew": false
           },
           null,
-          {
-            "label": "In der Falle | Das 3. Jahrtausend #129",
-            "type": "URL",
-            "target": "https://triggerfm.com/mediathek/?video\u003d1778256026199g0b",
-            "check": false,
-            "hasNew": false
-          },
-          {
-            "label": "Triggerfm Mediathek",
-            "type": "URL",
-            "target": "https://triggerfm.com/mediathek/?video\u003d1778256026199g0b",
-            "check": false,
-            "hasNew": false
-          },
-          {
-            "label": "Vom Straßenmusiker zum Millionär: WAS MACHT EIG JOEY KELLY?",
-            "type": "URL",
-            "target": "https://www.youtube.com/watch?v\u003dY4jY5USNpRo",
-            "check": true,
-            "latestVideoId": "Y4jY5USNpRo",
-            "hasNew": false
-          },
-          {
-            "label": " Geld gewinnen: Wie ist es, plötzlich reich zu sein? I 37 Grad",
-            "type": "URL",
-            "target": "https://www.youtube.com/watch?v\u003dvCjcJofoDc8",
-            "check": true,
-            "latestVideoId": "vCjcJofoDc8",
-            "hasNew": false
-          },
-          {
-            "label": " Was ist dran, an den Vorwürfen gegen HKCM?",
-            "type": "URL",
-            "target": "https://www.youtube.com/watch?v\u003dQWMehucVcww",
-            "check": true,
-            "latestVideoId": "QWMehucVcww",
-            "hasNew": false
-          },
-          {
-            "label": " Die RAM-Krise ist schlimmer als du denkst...",
-            "type": "URL",
-            "target": "https://www.youtube.com/watch?v\u003dXk3mxlbf4Fk",
-            "check": true,
-            "latestVideoId": "Xk3mxlbf4Fk",
-            "hasNew": false
-          },
-          {
-            "label": "Kostenlos Videos schneiden wie ein PRO in 2026 – DaVinci Resolve Einstieg",
-            "type": "URL",
-            "target": "https://www.youtube.com/watch?v\u003dZrZXFRZ-XE8",
-            "check": true,
-            "latestVideoId": "ZrZXFRZ-XE8",
-            "hasNew": false
-          },
           null,
           null
         ]
@@ -601,9 +608,9 @@
       "hasNew": false
     },
     {
-      "label": "AppCleaner",
+      "label": "Screenshot",
       "type": "PROGRAM",
-      "target": "open \"/Applications/AppCleaner.app\"",
+      "target": "open /System/Applications/Utilities/Screenshot.app",
       "check": false,
       "hasNew": false
     },
@@ -642,13 +649,7 @@
       "check": false,
       "hasNew": false
     },
-    {
-      "label": "Screenshot",
-      "type": "PROGRAM",
-      "target": "open /System/Applications/Utilities/Screenshot.app",
-      "check": false,
-      "hasNew": false
-    },
+    null,
     {
       "label": "Netflix",
       "type": "URL",
@@ -1179,7 +1180,13 @@
       "check": false,
       "hasNew": false
     },
-    null,
+    {
+      "label": "AppCleaner",
+      "type": "PROGRAM",
+      "target": "open \"/Applications/AppCleaner.app\"",
+      "check": false,
+      "hasNew": false
+    },
     null,
     null,
     null,
