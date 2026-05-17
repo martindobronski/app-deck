@@ -55,6 +55,7 @@ public class StreamDeckApp extends JFrame {
     private final Set<String> killedApps = new HashSet<>();
     private ButtonConfig currentFolder;
     private int savedRootPage;
+    private java.awt.KeyEventDispatcher searchKeyDispatcher;
 
     public StreamDeckApp(List<List<ButtonConfig>> pages, String configPath) {
         this.pages = pages;
@@ -74,6 +75,10 @@ public class StreamDeckApp extends JFrame {
             "App Desk V1.0\nEin Stream-Deck-artiger Schaltflächenstarter für macOS.\n\nErstellt am 16.05.26",
             "Über App Desk", JOptionPane.INFORMATION_MESSAGE));
         appMenu.add(aboutItem);
+        appMenu.addSeparator();
+        JMenuItem searchItem = new JMenuItem("Suche mit Strg + F");
+        searchItem.addActionListener(e -> showSearchDialog());
+        appMenu.add(searchItem);
         appMenu.addSeparator();
         JMenuItem exitItem = new JMenuItem("App Desk beenden");
         exitItem.addActionListener(e -> System.exit(0));
@@ -285,8 +290,20 @@ public class StreamDeckApp extends JFrame {
             @Override
             public void windowClosing(java.awt.event.WindowEvent e) {
                 if (refreshTimer != null) refreshTimer.stop();
+                if (searchKeyDispatcher != null)
+                    KeyboardFocusManager.getCurrentKeyboardFocusManager().removeKeyEventDispatcher(searchKeyDispatcher);
             }
         });
+
+        searchKeyDispatcher = e -> {
+            if (e.getID() != KeyEvent.KEY_PRESSED) return false;
+            if ((e.isMetaDown() || e.isControlDown()) && e.getKeyCode() == KeyEvent.VK_F) {
+                showSearchDialog();
+                return true;
+            }
+            return false;
+        };
+        KeyboardFocusManager.getCurrentKeyboardFocusManager().addKeyEventDispatcher(searchKeyDispatcher);
 
         refreshTimer = new javax.swing.Timer(5000, e -> {
             pollRunningApps();
@@ -797,6 +814,168 @@ public class StreamDeckApp extends JFrame {
             }
         } catch (Exception ex) {
             JOptionPane.showMessageDialog(this, "Error: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    private void showSearchDialog() {
+        List<Object[]> allEntries = new ArrayList<>();
+        for (int p = 0; p < pages.size(); p++) {
+            List<ButtonConfig> page = pages.get(p);
+            for (int i = 0; i < page.size(); i++) {
+                ButtonConfig cfg = page.get(i);
+                if (cfg != null) {
+                    allEntries.add(new Object[]{cfg, p, null, i});
+                    if ("FOLDER".equals(cfg.getType()) && cfg.getPages() != null) {
+                        for (int fp = 0; fp < cfg.getPages().size(); fp++) {
+                            List<ButtonConfig> fpage = cfg.getPages().get(fp);
+                            for (int fi = 0; fi < fpage.size(); fi++) {
+                                ButtonConfig fcfg = fpage.get(fi);
+                                if (fcfg != null)
+                                    allEntries.add(new Object[]{fcfg, p, cfg, fp, fi});
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        if (allEntries.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Keine konfigurierten Buttons vorhanden.", "Suche", JOptionPane.INFORMATION_MESSAGE);
+            return;
+        }
+
+        JTextField searchField = new JTextField(20);
+        DefaultListModel<String> listModel = new DefaultListModel<>();
+        JList<String> resultList = new JList<>(listModel);
+        resultList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        resultList.setFont(new Font("Dialog", Font.PLAIN, 12));
+
+        List<Object[]> filtered = new ArrayList<>();
+
+        java.awt.event.KeyAdapter filter = new java.awt.event.KeyAdapter() {
+            @Override
+            public void keyReleased(java.awt.event.KeyEvent e) {
+                String q = searchField.getText().toLowerCase();
+                listModel.clear();
+                filtered.clear();
+                for (Object[] entry : allEntries) {
+                    ButtonConfig cfg = (ButtonConfig) entry[0];
+                    if (cfg.getLabel().toLowerCase().contains(q) || cfg.getTarget().toLowerCase().contains(q)) {
+                        filtered.add(entry);
+                        int rootPage = (int) entry[1];
+                        String loc = entry[2] != null
+                            ? "S." + (rootPage + 1) + " > " + ((ButtonConfig) entry[2]).getLabel() + " > S." + ((int) entry[4] + 1)
+                            : "S." + (rootPage + 1);
+                        listModel.addElement(cfg.getLabel() + "  (" + loc + ")");
+                    }
+                }
+            }
+        };
+        searchField.addKeyListener(filter);
+
+        JPanel dialogPanel = new JPanel(new BorderLayout(6, 6));
+        dialogPanel.setBorder(BorderFactory.createEmptyBorder(8, 8, 8, 8));
+        dialogPanel.add(searchField, BorderLayout.NORTH);
+        dialogPanel.add(new JScrollPane(resultList), BorderLayout.CENTER);
+
+        JDialog dialog = new JDialog(this, "Suche (Esc schließen)", true);
+        dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
+        dialog.add(dialogPanel);
+        dialog.getRootPane().getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(
+            KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), "close");
+        dialog.getRootPane().getActionMap().put("close", new AbstractAction() {
+            public void actionPerformed(java.awt.event.ActionEvent e) { dialog.dispose(); }
+        });
+        dialog.pack();
+        dialog.setSize(400, 350);
+        dialog.setLocationRelativeTo(this);
+
+        resultList.addMouseListener(new java.awt.event.MouseAdapter() {
+            @Override
+            public void mouseClicked(java.awt.event.MouseEvent e) {
+                if (e.getClickCount() == 2 && !filtered.isEmpty()) {
+                    int idx = resultList.getSelectedIndex();
+                    if (idx >= 0 && idx < filtered.size()) navigateToResult(filtered.get(idx));
+                    dialog.dispose();
+                }
+            }
+        });
+
+        java.awt.event.KeyAdapter listNav = new java.awt.event.KeyAdapter() {
+            @Override
+            public void keyPressed(java.awt.event.KeyEvent e) {
+                if (e.getKeyCode() == KeyEvent.VK_DOWN || e.getKeyCode() == KeyEvent.VK_UP) {
+                    if (listModel.size() == 0) return;
+                    e.consume();
+                    int idx = resultList.getSelectedIndex();
+                    if (idx < 0) idx = 0;
+                    else if (e.getKeyCode() == KeyEvent.VK_UP && idx > 0) idx--;
+                    else if (e.getKeyCode() == KeyEvent.VK_DOWN && idx < listModel.size() - 1) idx++;
+                    resultList.setSelectedIndex(idx);
+                    resultList.ensureIndexIsVisible(idx);
+                    resultList.requestFocusInWindow();
+                }
+            }
+        };
+        searchField.addKeyListener(listNav);
+
+        resultList.addKeyListener(new java.awt.event.KeyAdapter() {
+            @Override
+            public void keyPressed(java.awt.event.KeyEvent e) {
+                if (e.getKeyCode() == KeyEvent.VK_UP && resultList.getSelectedIndex() <= 0) {
+                    searchField.requestFocusInWindow();
+                    searchField.selectAll();
+                }
+            }
+        });
+
+        java.awt.event.KeyAdapter enterKey = new java.awt.event.KeyAdapter() {
+            @Override
+            public void keyPressed(java.awt.event.KeyEvent e) {
+                if (e.getKeyCode() == KeyEvent.VK_ENTER && !filtered.isEmpty()) {
+                    int idx = resultList.getSelectedIndex();
+                    if (idx < 0) idx = 0;
+                    if (idx < filtered.size()) navigateToResult(filtered.get(idx));
+                    dialog.dispose();
+                }
+            }
+        };
+        resultList.addKeyListener(enterKey);
+        searchField.addKeyListener(enterKey);
+
+        dialog.setVisible(true);
+    }
+
+    private void navigateToResult(Object[] entry) {
+        ButtonConfig cfg = (ButtonConfig) entry[0];
+        int rootPage = (int) entry[1];
+        ButtonConfig folderCfg = (ButtonConfig) entry[2];
+
+        if (folderCfg != null) {
+            savedRootPage = rootPage;
+            currentPage = 0;
+            currentFolder = folderCfg;
+        } else {
+            currentFolder = null;
+            currentPage = rootPage;
+        }
+        updateAllButtons();
+
+        List<ButtonConfig> btns = currentPageBtns();
+        int pageIdx = entry.length == 5 ? (int) entry[4] : (int) entry[3];
+        int gridIdx = pageToGridIndex(pageIdx);
+        if (gridIdx >= 0) {
+            JButton btn = btnComponents[gridIdx];
+            btn.setBorder(BorderFactory.createLineBorder(new Color(255, 200, 0), 3));
+            javax.swing.Timer reset = new javax.swing.Timer(5000, ev -> {
+                if (currentFolder != null || currentPage == rootPage) {
+                    String appKey = "PROGRAM".equals(cfg.getType()) ? extractAppName(cfg.getTarget()).toLowerCase() : null;
+                    btn.setBorder(appKey != null && isAppRunning(appKey) && !killedApps.contains(appKey)
+                        ? ROUNDED_BORDER_RUNNING : ROUNDED_BORDER);
+                }
+            });
+            reset.setRepeats(false);
+            reset.start();
         }
     }
 
