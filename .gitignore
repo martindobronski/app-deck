@@ -5,3 +5,4 @@ dependency-reduced-pom.xml
 *.iml
 App Deck.app/
 dist/
+appdeck.log
