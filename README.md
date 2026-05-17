@@ -10,15 +10,25 @@ Eine in Java Swing entwickelte Desktop-Anwendung fur macOS, die als frei konfigu
 - **Programm-Buttons** – starten macOS-Apps oder beliebige Kommandos
 - **Ordner-Buttons** – verschachtelte Unterseiten fur Gruppen
 - **COPY-Buttons** – kopieren Text in die Zwischenablage
-- **Drag & Drop** – Buttons neu anordnen, in Ordner verschieben
+- **Datei-Buttons** – offnen Dateien und Ordner
+- **Drag & Drop** – Buttons neu anordnen, in Ordner verschieben oder auf andere Seiten ziehen
 - **Hover-Effekt** – blaulicher Highlight beim Uberfahren mit der Maus
 - **Laufende Apps erkennen** – gruner Rahmen bei aktiven Programmen
 - **App per Langdruck beenden** – >800ms gedruckt halten
 - **App-Icons** – automatisch aus .app-Bundles extrahiert (macOS)
 - **JSON-Konfiguration** – wird beim Bearbeiten automatisch gespeichert
-- **Konfigurierbare leere Buttons** – dezent dunkel auf dunklem Hintergrund
-- **Dunkles Design** – dunkelgrauer Hintergrund (50,50,55) hinter den Buttons
-- **Eigenes App-Icon** – 5x3 farbiges Raster auf dunklem Hintergrund (PNG + ICNS)
+- **Dunkles Design** – dunkler Hintergrund (35,35,40→50,50,55) mit hellen Buttons (248,248,250→225,225,230)
+- **Eigenes App-Icon** – farbiges Raster auf dunklem Hintergrund (PNG + ICNS)
+- **YouTube-Update-Prufung** – periodische Suche nach neuen Videos, "neu"-Badge, manueller Check uber Menü
+- **Suchdialog** – Cmd+F durchsucht alle Seiten nach Label/Ziel, Navigation mit Pfeiltasten, blinkende Markierung
+- **Type-to-Search** – Tastatureingabe bei nicht-fokussierten Textfeldern offnet Suchdialog
+- **Pfeiltasten-Navigation** zwischen Buttons, Enter fuhrt Aktion aus
+- **Fokus-Ring** – gold/orange gestrichelter Rahmen um fokussierten Button
+- **ESC-Rucknavigation** zur vorherigen Seite bzw. Ordner-Ebene
+- **Menuleiste** – App Desk (Info, YouTube-Prufung, Beenden) und Hilfe (Dokumentation)
+- **Konfigurationsdialog** – linksbundige Felder mit 15px Rand, mittig zentrierte OK/Abbrechen-Buttons
+- **YouTube-Erkennung** – Checkbox "Auf neue Videos prufen" erscheint nur bei YouTube-URLs und ist automatisch aktiviert
+- **Logging** – `appdeck.log` mit Zeitstempeln, Rotation bei 5 MB
 
 ## Voraussetzungen
 

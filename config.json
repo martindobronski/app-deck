@@ -124,7 +124,7 @@
             "type": "URL",
             "target": "https://www.youtube.com/@die.weltwoche/videos",
             "check": true,
-            "latestVideoId": "z_5uy1kEg3U",
+            "latestVideoId": "Vey3nY8oKQs",
             "hasNew": false
           },
           {
@@ -159,11 +159,46 @@
             "latestVideoId": "ALDU18FPb5Q",
             "hasNew": false
           },
-          null,
-          null,
-          null,
-          null,
-          null,
+          {
+            "label": "Make-o-Rama 3D Druck",
+            "type": "URL",
+            "target": "https://www.youtube.com/@MAKEORAMA/videos",
+            "check": true,
+            "latestVideoId": "bt-DT0k1dYU",
+            "hasNew": false
+          },
+          {
+            "label": "Actuarium",
+            "type": "URL",
+            "target": "https://www.youtube.com/@Actuarium/videos",
+            "check": true,
+            "latestVideoId": "gHMSB0WSF6k",
+            "hasNew": false
+          },
+          {
+            "label": "Jasmin Kosubek",
+            "type": "URL",
+            "target": "https://www.youtube.com/@JasminKosubekOriginal/videos",
+            "check": true,
+            "latestVideoId": "yHlZ96KiacA",
+            "hasNew": false
+          },
+          {
+            "label": "InfraRot Medien",
+            "type": "URL",
+            "target": "https://www.youtube.com/@InfraRotSichtinsDunkel/videos",
+            "check": true,
+            "latestVideoId": "Wod0-5azv5M",
+            "hasNew": false
+          },
+          {
+            "label": "ink harmony",
+            "type": "URL",
+            "target": "https://www.youtube.com/@InkHarmony/videos",
+            "check": true,
+            "latestVideoId": "_zE2RgybymA",
+            "hasNew": false
+          },
           null,
           null,
           null,
@@ -285,8 +320,8 @@
             "type": "URL",
             "target": "https://www.youtube.com/@CoinCheckTV",
             "check": true,
-            "latestVideoId": "B8alnX5PGFI",
-            "hasNew": false
+            "latestVideoId": "ELPRggqYPwA",
+            "hasNew": true
           },
           {
             "label": "Blocktrainer",
@@ -325,7 +360,7 @@
             "type": "URL",
             "target": "https://www.youtube.com/@BITCOIN-HOTEL/videos",
             "check": true,
-            "latestVideoId": "qZr5KisvqO4",
+            "latestVideoId": "UWIm6uynEeo",
             "hasNew": false
           }
         ]
@@ -355,21 +390,13 @@
             "hasNew": false
           },
           {
-            "label": "Make-o-Rama 3D Druck",
+            "label": "M4 Mac Mini Langzeit Review",
             "type": "URL",
-            "target": "https://www.youtube.com/@MAKEORAMA/videos",
-            "check": true,
-            "latestVideoId": "bt-DT0k1dYU",
+            "target": "https://www.youtube.com/watch?v\u003d6gnR46gbaVM\u0026pp\u003dugUEEgJkZQ%3D%3D",
+            "check": false,
             "hasNew": false
           },
-          {
-            "label": "MacBook Neo: Das iPad, das ich immer wollte!",
-            "type": "URL",
-            "target": "https://www.youtube.com/watch?v\u003dVY86n3nO9tY",
-            "check": true,
-            "latestVideoId": "VY86n3nO9tY",
-            "hasNew": false
-          },
+          null,
           {
             "label": "In der Falle | Das 3. Jahrtausend #129",
             "type": "URL",
@@ -1027,20 +1054,60 @@
       "hasNew": false
     },
     {
-      "label": "Router",
-      "type": "URL",
-      "target": "http://192.168.8.2/#/login",
+      "label": "Telegram Kanäle",
+      "type": "FOLDER",
+      "target": "",
+      "pages": [
+        [
+          {
+            "label": "Infrarotmediensicht",
+            "type": "URL",
+            "target": "https://t.me/infrarotmediensicht",
+            "check": false,
+            "hasNew": false
+          },
+          {
+            "label": "T Inkharmony",
+            "type": "URL",
+            "target": "https://t.me/inkharmony",
+            "check": false,
+            "hasNew": false
+          },
+          {
+            "label": "Hochsensibel in die neue Zeit",
+            "type": "URL",
+            "target": "https://t.me/hochsensibel_ins_Jetzt",
+            "check": false,
+            "hasNew": false
+          },
+          {
+            "label": "Zufall, oder?",
+            "type": "URL",
+            "target": "https://t.me/ZufallOder",
+            "check": false,
+            "hasNew": false
+          },
+          {
+            "label": "Bernie aus Australien",
+            "type": "URL",
+            "target": "https://t.me/bernie006",
+            "check": false,
+            "hasNew": false
+          },
+          {
+            "label": "Actuarium",
+            "type": "URL",
+            "target": "https://t.me/actuarium",
+            "check": false,
+            "hasNew": false
+          },
+          null,
+          null
+        ]
+      ],
       "check": false,
       "hasNew": false
     },
-    {
-      "label": "Notizen",
-      "type": "PROGRAM",
-      "target": "open -a Notes",
-      "check": false,
-      "hasNew": false
-    },
-    null,
     {
       "label": "DNS",
       "type": "FOLDER",
@@ -1098,62 +1165,26 @@
       "check": false,
       "hasNew": false
     },
-    null,
     {
-      "label": "Telegram Kanäle",
-      "type": "FOLDER",
-      "target": "",
-      "pages": [
-        [
-          {
-            "label": "Infrarotmediensicht",
-            "type": "URL",
-            "target": "https://t.me/infrarotmediensicht",
-            "check": false,
-            "hasNew": false
-          },
-          {
-            "label": "T Inkharmony",
-            "type": "URL",
-            "target": "https://t.me/inkharmony",
-            "check": false,
-            "hasNew": false
-          },
-          {
-            "label": "Hochsensibel in die neue Zeit",
-            "type": "URL",
-            "target": "https://t.me/hochsensibel_ins_Jetzt",
-            "check": false,
-            "hasNew": false
-          },
-          {
-            "label": "Zufall, oder?",
-            "type": "URL",
-            "target": "https://t.me/ZufallOder",
-            "check": false,
-            "hasNew": false
-          },
-          {
-            "label": "Bernie aus Australien",
-            "type": "URL",
-            "target": "https://t.me/bernie006",
-            "check": false,
-            "hasNew": false
-          },
-          {
-            "label": "Actuarium",
-            "type": "URL",
-            "target": "https://t.me/actuarium",
-            "check": false,
-            "hasNew": false
-          },
-          null,
-          null
-        ]
-      ],
+      "label": "Notizen",
+      "type": "PROGRAM",
+      "target": "open -a Notes",
       "check": false,
       "hasNew": false
     },
+    {
+      "label": "Router",
+      "type": "URL",
+      "target": "http://192.168.8.2/#/login",
+      "check": false,
+      "hasNew": false
+    },
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
     null
   ],
   [

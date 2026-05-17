@@ -182,13 +182,6 @@ public class StreamDeckApp extends JFrame {
                     Graphics2D g2 = (Graphics2D) g.create();
                     g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
                     boolean empty = Boolean.TRUE.equals(getClientProperty("empty"));
-                    if (empty) {
-                        g2.setPaint(new Color(55, 55, 60));
-                        g2.fillRoundRect(0, 0, getWidth() - 1, getHeight() - 1, 14, 14);
-                        g2.dispose();
-                        super.paintComponent(g);
-                        return;
-                    }
                     boolean pressed = getModel().isPressed();
                     boolean hovered = Boolean.TRUE.equals(getClientProperty("hovered"));
                     Paint bg;
@@ -249,7 +242,8 @@ public class StreamDeckApp extends JFrame {
             btn.setBorder(ROUNDED_BORDER);
 
             if (row == ROWS - 1 && col == COLS - 1) {
-                btn.setText("\u25B6");
+                btn.setText("\u2192");
+                btn.setToolTipText("Nächste Seite");
                 btn.addActionListener(e -> nextPage());
             } else {
                 btn.addActionListener(e -> {
@@ -485,7 +479,7 @@ public class StreamDeckApp extends JFrame {
             btn.putClientProperty("empty", false);
             if (currentPage > 0 || currentFolder != null) {
                 btn.setFont(btn.getFont().deriveFont(28f));
-                btn.setText("\u25C0");
+                btn.setText("\u2190");
                 btn.setToolTipText("Vorherige Seite");
                 btn.setEnabled(true);
             } else {
@@ -673,6 +667,10 @@ public class StreamDeckApp extends JFrame {
         JTextArea targetArea = new JTextArea(cfg.getTarget(), 2, 20);
         targetArea.setLineWrap(true);
         targetArea.setWrapStyleWord(true);
+
+        JCheckBox videoCheckBox = new JCheckBox("Auf neue Videos prüfen", cfg.isCheck());
+        videoCheckBox.setVisible("URL".equals(cfg.getType()) && isYouTubeUrl(cfg.getTarget()));
+
         targetArea.getDocument().addDocumentListener(new javax.swing.event.DocumentListener() {
             private void check() {
                 String text = targetArea.getText().trim();
@@ -686,6 +684,12 @@ public class StreamDeckApp extends JFrame {
                 }
                 if (text.startsWith("http://") || text.startsWith("https://")) {
                     typeBox.setSelectedItem("URL");
+                    if (isYouTubeUrl(text)) {
+                        videoCheckBox.setSelected(true);
+                        videoCheckBox.setVisible(true);
+                    } else {
+                        videoCheckBox.setVisible(false);
+                    }
                     String suggested = suggestLabel(text);
                     if (suggested != null) labelField.setText(suggested);
                 } else if (text.startsWith("file://")) {
@@ -766,9 +770,6 @@ public class StreamDeckApp extends JFrame {
             }
         });
 
-        JCheckBox videoCheckBox = new JCheckBox("Auf neue Videos prüfen", cfg.isCheck());
-        videoCheckBox.setVisible("URL".equals(cfg.getType()));
-
         typeBox.addActionListener(ev -> {
             boolean isFolder = "FOLDER".equals(typeBox.getSelectedItem());
             boolean isCopy = "COPY".equals(typeBox.getSelectedItem());
@@ -777,7 +778,7 @@ public class StreamDeckApp extends JFrame {
             targetArea.setRows(isCopy ? 5 : 2);
             browseBtn.setVisible(!isFolder && !isCopy);
             targetScroll.setPreferredSize(new Dimension(200, isCopy ? 90 : 40));
-            videoCheckBox.setVisible(isUrl);
+            videoCheckBox.setVisible(isUrl && isYouTubeUrl(targetArea.getText()));
         });
 
         JPanel targetPanel = new JPanel(new BorderLayout(4, 0));
@@ -785,33 +786,63 @@ public class StreamDeckApp extends JFrame {
         targetPanel.add(browseBtn, BorderLayout.EAST);
 
         JPanel panel = new JPanel(new GridBagLayout());
-        panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        panel.setBorder(BorderFactory.createEmptyBorder(10, 15, 10, 15));
         GridBagConstraints gbc = new GridBagConstraints();
-        gbc.insets = new Insets(4, 4, 4, 4);
+        gbc.insets = new Insets(4, 0, 4, 0);
         gbc.anchor = GridBagConstraints.WEST;
-        gbc.fill = GridBagConstraints.HORIZONTAL;
 
+        gbc.fill = GridBagConstraints.NONE;
+        gbc.weightx = 0;
         gbc.gridx = 0; gbc.gridy = 0;
         panel.add(new JLabel("Label:"), gbc);
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.weightx = 1.0;
         gbc.gridx = 1;
         panel.add(labelField, gbc);
 
+        gbc.fill = GridBagConstraints.NONE;
+        gbc.weightx = 0;
         gbc.gridx = 0; gbc.gridy = 1;
         panel.add(new JLabel("Typ:"), gbc);
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.weightx = 1.0;
         gbc.gridx = 1;
         panel.add(typeBox, gbc);
 
+        gbc.fill = GridBagConstraints.NONE;
+        gbc.weightx = 0;
         gbc.gridx = 0; gbc.gridy = 2;
         panel.add(new JLabel("Ziel:"), gbc);
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.weightx = 1.0;
         gbc.gridx = 1;
         panel.add(targetPanel, gbc);
 
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.weightx = 1.0;
         gbc.gridx = 0; gbc.gridy = 3;
         gbc.gridwidth = 2;
         panel.add(videoCheckBox, gbc);
 
-        int result = JOptionPane.showConfirmDialog(this, panel,
-            "Button konfigurieren", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
+        JButton okBtn = new JButton("OK");
+        JButton cancelBtn = new JButton("Abbrechen");
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 0));
+        buttonPanel.add(okBtn);
+        buttonPanel.add(cancelBtn);
+
+        JPanel outerPanel = new JPanel(new BorderLayout(0, 15));
+        outerPanel.add(panel, BorderLayout.CENTER);
+        outerPanel.add(buttonPanel, BorderLayout.SOUTH);
+
+        JOptionPane pane = new JOptionPane(outerPanel, JOptionPane.PLAIN_MESSAGE, JOptionPane.DEFAULT_OPTION, null, new Object[0], null);
+        JDialog dialog = pane.createDialog(this, "Schaltfläche konfigurieren");
+        dialog.setSize(Math.max(dialog.getWidth(), 520), dialog.getHeight());
+        dialog.setLocationRelativeTo(null);
+        okBtn.addActionListener(e -> { pane.setValue(JOptionPane.OK_OPTION); dialog.dispose(); });
+        cancelBtn.addActionListener(e -> { pane.setValue(JOptionPane.CANCEL_OPTION); dialog.dispose(); });
+        dialog.setVisible(true);
+        Object selectedValue = pane.getValue();
+        int result = selectedValue instanceof Integer ? (Integer) selectedValue : JOptionPane.CLOSED_OPTION;
 
         if (result == JOptionPane.OK_OPTION) {
             ButtonConfig updated = new ButtonConfig(
@@ -1440,11 +1471,23 @@ public class StreamDeckApp extends JFrame {
         } catch (Exception ignored) { return null; }
     }
 
+    private static boolean isYouTubeUrl(String url) {
+        String lower = url.toLowerCase();
+        return lower.contains("youtube.com") || lower.contains("youtu.be");
+    }
+
     private String suggestLabel(String url) {
         try {
             URI uri = new URI(url);
             String host = uri.getHost();
             String path = uri.getPath();
+            if (host != null && path != null && (host.contains("youtube.com") || host.contains("youtu.be"))) {
+                java.util.regex.Matcher m = java.util.regex.Pattern.compile("@([^/]+)").matcher(path);
+                if (m.find()) {
+                    String handle = m.group(1);
+                    return Character.toUpperCase(handle.charAt(0)) + handle.substring(1);
+                }
+            }
             if (host != null) {
                 String[] parts = host.split("\\.");
                 String mainDomain = parts.length >= 2 ? parts[parts.length - 2] : parts[0];
