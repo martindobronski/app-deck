@@ -384,7 +384,7 @@
             "target": "https://www.youtube.com/@RafaelZeier/videos",
             "check": true,
             "latestVideoId": "waO5xNeQiqw",
-            "hasNew": true
+            "hasNew": false
           },
           {
             "label": "37 Grad",
@@ -691,6 +691,32 @@
             "check": true,
             "latestVideoId": "9CXO64jHzg8",
             "hasNew": false
+          }
+        ],
+        [
+          {
+            "label": "Lady und Sir Apfelot",
+            "type": "URL",
+            "target": "https://www.youtube.com/@apfelot/videos",
+            "check": true,
+            "latestVideoId": "grJn7VxGH9I",
+            "hasNew": false
+          },
+          {
+            "label": "Bastian Wölfle",
+            "type": "URL",
+            "target": "https://www.youtube.com/@BastianWoelfle/videos",
+            "check": true,
+            "latestVideoId": "WX9uEpGaV48",
+            "hasNew": true
+          },
+          {
+            "label": "#heiseshow",
+            "type": "URL",
+            "target": "https://www.youtube.com/watch?v\u003dFsF_Jn1kxnE\u0026list\u003dPLUoWfXKEShjcui84g0hQ_NIFXYA9geFpR",
+            "check": true,
+            "latestVideoId": "FsF_Jn1kxnE",
+            "hasNew": true
           }
         ]
       ],

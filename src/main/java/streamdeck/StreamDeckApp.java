@@ -1271,7 +1271,7 @@ public class StreamDeckApp extends JFrame {
                     filtered.add(entry);
                     int rootPage = (int) entry[1];
                     String loc = entry[2] != null
-                        ? "S." + (rootPage + 1) + " > " + ((ButtonConfig) entry[2]).getLabel() + " > S." + ((int) entry[4] + 1)
+                        ? "S." + (rootPage + 1) + " > " + ((ButtonConfig) entry[2]).getLabel() + " > S." + ((int) entry[3] + 1) + "/" + ((int) entry[4] + 1)
                         : "S." + (rootPage + 1);
                     listModel.addElement(cfg.getLabel() + "  (" + loc + ")");
                 }
@@ -1358,6 +1358,7 @@ public class StreamDeckApp extends JFrame {
         }
 
         searchDialogOpen = true;
+        SwingUtilities.invokeLater(() -> searchField.requestFocusInWindow());
         dialog.setVisible(true);
         searchDialogOpen = false;
     }
@@ -1369,7 +1370,7 @@ public class StreamDeckApp extends JFrame {
 
         if (folderCfg != null) {
             savedRootPage = rootPage;
-            currentPage = 0;
+            currentPage = (int) entry[3];
             currentFolder = folderCfg;
         } else {
             currentFolder = null;
@@ -1849,23 +1850,11 @@ public class StreamDeckApp extends JFrame {
         String configPath = args.length > 0 ? args[0] : "config.json";
 
         if (!new File(configPath).exists()) {
-            String homeCfg = System.getProperty("user.home")
-                + "/Library/Application Support/App Deck/config.json";
-            if (new File(homeCfg).exists()) {
-                configPath = homeCfg;
-            } else {
-                try {
-                    new File(homeCfg).getParentFile().mkdirs();
-                    ConfigLoader.save(homeCfg, List.of(new java.util.ArrayList<>()));
-                    configPath = homeCfg;
-                } catch (IOException e2) {
-                    JOptionPane.showMessageDialog(null,
-                        "Config not found: " + configPath
-                            + "\nCould not create default config.", "Error",
-                        JOptionPane.ERROR_MESSAGE);
-                    return;
-                }
-            }
+            JOptionPane.showMessageDialog(null,
+                "Config-Datei nicht gefunden: " + configPath
+                    + "\nBitte starte die Anwendung aus dem Verzeichnis, in dem config.json liegt.",
+                "Fehler", JOptionPane.ERROR_MESSAGE);
+            return;
         }
 
         List<List<ButtonConfig>> pages;
@@ -1873,8 +1862,8 @@ public class StreamDeckApp extends JFrame {
             pages = ConfigLoader.load(configPath);
         } catch (IOException e) {
             JOptionPane.showMessageDialog(null,
-                "Error loading config: " + configPath + "\n" + e.getMessage(),
-                "Error", JOptionPane.ERROR_MESSAGE);
+                "Fehler beim Laden von " + configPath + "\n" + e.getMessage(),
+                "Fehler", JOptionPane.ERROR_MESSAGE);
             return;
         }
         String finalConfigPath = configPath;
