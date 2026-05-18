@@ -83,96 +83,89 @@
       "hasNew": false
     },
     {
-      "label": "Noch anschauen",
+      "label": "Finanzen",
       "type": "FOLDER",
       "target": "",
       "pages": [
         [
           {
-            "label": "Guardians of the Galaxy",
+            "label": "BSDEX",
             "type": "URL",
-            "target": "https://www.amazon.de/gp/video/detail/B0CPVBDH6F/ref\u003datv_hm_sto_c_puV8Nn_brws_17_6?jic\u003d8%7CEgR0dm9k",
+            "target": "https://app.bsdex.de/trading/btc-eur",
             "check": false,
-            "hasNew": true
+            "hasNew": false
           },
           {
-            "label": " ChatGPT Codex ist UNGLAUBLICH! So benutzt du es als Anfänger",
+            "label": "Cointracking Dashboard",
             "type": "URL",
-            "target": "https://www.youtube.com/watch?v\u003d98kIFt3cIsw",
-            "check": true,
-            "latestVideoId": "98kIFt3cIsw",
-            "hasNew": true
-          },
-          {
-            "label": "M4 Mac Mini Langzeit Review",
-            "type": "URL",
-            "target": "https://www.youtube.com/watch?v\u003d6gnR46gbaVM\u0026pp\u003dugUEEgJkZQ%3D%3D",
+            "target": "https://cointracking.info/dashboard",
             "check": false,
-            "hasNew": true
+            "hasNew": false
           },
           {
-            "label": "Wird sich das Hantavirus ausbreiten? Wichtige Termine",
+            "label": "Maple Leaf - Chart",
             "type": "URL",
-            "target": "https://www.youtube.com/watch?v\u003dt1OdoiwTjVs",
-            "check": true,
-            "hasNew": true
-          },
-          {
-            "label": "In der Falle | Das 3. Jahrtausend #129",
-            "type": "URL",
-            "target": "https://triggerfm.com/mediathek/?video\u003d1778256026199g0b",
+            "target": "https://www.finanzen.net/goldmuenzen/maple-leaf-unze",
             "check": false,
-            "hasNew": true
+            "hasNew": false
           },
           {
-            "label": "Triggerfm Mediathek",
+            "label": "Goldpreis - Chart",
             "type": "URL",
-            "target": "https://triggerfm.com/mediathek/?video\u003d1778256026199g0b",
+            "target": "https://www.finanzen.net/rohstoffe/goldpreis",
             "check": false,
-            "hasNew": true
+            "hasNew": false
           },
           {
-            "label": "Vom Straßenmusiker zum Millionär: WAS MACHT EIG JOEY KELLY?",
+            "label": "Silberpreis - Chart",
             "type": "URL",
-            "target": "https://www.youtube.com/watch?v\u003dY4jY5USNpRo",
-            "check": true,
-            "latestVideoId": "Y4jY5USNpRo",
-            "hasNew": true
+            "target": "https://www.finanzen.net/rohstoffe/silberpreis",
+            "check": false,
+            "hasNew": false
           },
           {
-            "label": " Geld gewinnen: Wie ist es, plötzlich reich zu sein? I 37 Grad",
+            "label": "Ölpreis - Chart",
             "type": "URL",
-            "target": "https://www.youtube.com/watch?v\u003dvCjcJofoDc8",
-            "check": true,
-            "latestVideoId": "vCjcJofoDc8",
-            "hasNew": true
+            "target": "https://www.finanzen.net/rohstoffe/oelpreis",
+            "check": false,
+            "hasNew": false
           },
           {
-            "label": " Was ist dran, an den Vorwürfen gegen HKCM?",
+            "label": "Rohstoffe",
             "type": "URL",
-            "target": "https://www.youtube.com/watch?v\u003dQWMehucVcww",
-            "check": true,
-            "latestVideoId": "QWMehucVcww",
-            "hasNew": true
+            "target": "https://www.finanzen.net/rohstoffe",
+            "check": false,
+            "hasNew": false
           },
           {
-            "label": " Die RAM-Krise ist schlimmer als du denkst...",
+            "label": "Interactive Brokers",
             "type": "URL",
-            "target": "https://www.youtube.com/watch?v\u003dXk3mxlbf4Fk",
-            "check": true,
-            "latestVideoId": "Xk3mxlbf4Fk",
-            "hasNew": true
+            "target": "https://www.interactivebrokers.ie/de/home.php",
+            "check": false,
+            "hasNew": false
           },
           {
-            "label": "Kostenlos Videos schneiden wie ein PRO in 2026 – DaVinci Resolve Einstieg",
+            "label": "Staatenlos",
             "type": "URL",
-            "target": "https://www.youtube.com/watch?v\u003dZrZXFRZ-XE8",
-            "check": true,
-            "latestVideoId": "ZrZXFRZ-XE8",
-            "hasNew": true
+            "target": "https://staatenlos.ch/",
+            "check": false,
+            "hasNew": false
           },
-          null,
-          null
+          {
+            "label": "Hustler",
+            "type": "URL",
+            "target": "https://www.youtube.com/@HustlerBizReal/videos",
+            "check": true,
+            "latestVideoId": "mo6qM7nZgT4",
+            "hasNew": false
+          },
+          {
+            "label": "MoneyMoney",
+            "type": "PROGRAM",
+            "target": "open \"/Applications/MoneyMoney.app\"",
+            "check": false,
+            "hasNew": false
+          }
         ]
       ],
       "check": false,
@@ -282,7 +275,7 @@
             "type": "URL",
             "target": "https://www.youtube.com/@RobynHD/videos",
             "check": true,
-            "latestVideoId": "ChtC8vmVyyE",
+            "latestVideoId": "tRgKUdjg9Sg",
             "hasNew": false
           },
           {
@@ -291,7 +284,7 @@
             "target": "https://www.youtube.com/@CoinCheckTV",
             "check": true,
             "latestVideoId": "ELPRggqYPwA",
-            "hasNew": true
+            "hasNew": false
           },
           {
             "label": "Blocktrainer",
@@ -330,10 +323,12 @@
             "type": "URL",
             "target": "https://www.youtube.com/@BITCOIN-HOTEL/videos",
             "check": true,
-            "latestVideoId": "cqbuIIYChV4",
-            "hasNew": true
+            "latestVideoId": "OGKKPxsVlT0",
+            "hasNew": false
           }
-        ]
+        ],
+        [],
+        []
       ],
       "check": false,
       "hasNew": false
@@ -352,11 +347,11 @@
             "hasNew": false
           },
           {
-            "label": "Willkommen bei den Hartmanns",
+            "label": "The Morpheus",
             "type": "URL",
-            "target": "https://www.youtube.com/@willkommenbeidenhartmanns78/videos",
+            "target": "https://www.youtube.com/results?search_query\u003dthe+morpheus",
             "check": true,
-            "latestVideoId": "ur1iP4bqYdY",
+            "latestVideoId": "Pre7Smb0cSc",
             "hasNew": false
           },
           {
@@ -376,11 +371,11 @@
             "hasNew": false
           },
           {
-            "label": "Die Weltwoche",
+            "label": "Willkommen bei den Hartmanns",
             "type": "URL",
-            "target": "https://www.youtube.com/@die.weltwoche/videos",
+            "target": "https://www.youtube.com/@willkommenbeidenhartmanns78/videos",
             "check": true,
-            "latestVideoId": "Vey3nY8oKQs",
+            "latestVideoId": "ur1iP4bqYdY",
             "hasNew": false
           },
           {
@@ -388,7 +383,7 @@
             "type": "URL",
             "target": "https://www.youtube.com/@RafaelZeier/videos",
             "check": true,
-            "latestVideoId": "hRu1g8rkOws",
+            "latestVideoId": "waO5xNeQiqw",
             "hasNew": true
           },
           {
@@ -404,7 +399,7 @@
             "type": "URL",
             "target": "https://www.youtube.com/@zeitplanerin/videos",
             "check": true,
-            "latestVideoId": "yCM7mv6YVQM",
+            "latestVideoId": "Tvn6Cxr24N0",
             "hasNew": false
           },
           {
@@ -463,98 +458,321 @@
             "latestVideoId": "-GZyxTz5cuE",
             "hasNew": false
           },
-          null,
-          null,
-          null
+          {
+            "label": "Jonas Keil",
+            "type": "URL",
+            "target": "https://www.youtube.com/@JonasKeil/videos",
+            "check": true,
+            "latestVideoId": "98kIFt3cIsw",
+            "hasNew": false
+          },
+          {
+            "label": "Krewkast",
+            "type": "URL",
+            "target": "https://www.youtube.com/@krewkast/videos",
+            "check": true,
+            "latestVideoId": "w0azHDGoXwM",
+            "hasNew": true
+          },
+          {
+            "label": "Punkt.PERADOVIC",
+            "type": "URL",
+            "target": "https://www.youtube.com/@punkt.preradovic3208/videos",
+            "check": true,
+            "latestVideoId": "plfgekakBPA",
+            "hasNew": false
+          },
+          {
+            "label": "Morgenstern NEWS",
+            "type": "URL",
+            "target": "https://www.youtube.com/@MorgensternNEWS/videos",
+            "check": true,
+            "latestVideoId": "MQIsVlpf8Mo",
+            "hasNew": false
+          },
+          {
+            "label": "Florian Dalwigk",
+            "type": "URL",
+            "target": "https://www.youtube.com/@Florian.Dalwigk",
+            "check": true,
+            "latestVideoId": "QNQE-y0sNfk",
+            "hasNew": false
+          },
+          {
+            "label": "Ohne Dogma",
+            "type": "URL",
+            "target": "https://www.youtube.com/results?search_query\u003dohne+dogma",
+            "check": true,
+            "latestVideoId": "WD4b0VjVVAY",
+            "hasNew": false
+          },
+          {
+            "label": "Die Weltwoche",
+            "type": "URL",
+            "target": "https://www.youtube.com/@die.weltwoche/videos",
+            "check": true,
+            "latestVideoId": "KfaV5yunAVc",
+            "hasNew": true
+          }
+        ],
+        [
+          {
+            "label": "ComputerRalle (Ralf-Peter Kleinert)",
+            "type": "URL",
+            "target": "https://www.youtube.com/@ralf-peter-kleinert/videos",
+            "check": true,
+            "latestVideoId": "G_-QuZcJIi8",
+            "hasNew": false
+          },
+          {
+            "label": "B\u0026B - Burchardt \u0026 Böttcher - Wir müssen reden",
+            "type": "URL",
+            "target": "https://www.youtube.com/@burchardtundboettcher/videos",
+            "check": true,
+            "latestVideoId": "qpgMgkuNnXI",
+            "hasNew": false
+          },
+          {
+            "label": "Apfelwelt",
+            "type": "URL",
+            "target": "https://www.youtube.com/@DerApfelwelt/videos",
+            "check": true,
+            "latestVideoId": "1fI2S4VGXwo",
+            "hasNew": false
+          },
+          {
+            "label": "Yammibean",
+            "type": "URL",
+            "target": "https://www.youtube.com/@Yammibean/videos",
+            "check": true,
+            "latestVideoId": "1JV2oE6uzck",
+            "hasNew": false
+          },
+          {
+            "label": "Ken kocht - einfach besser essen",
+            "type": "URL",
+            "target": "https://www.youtube.com/@kenkocht/videos",
+            "check": true,
+            "latestVideoId": "Y3ufT_oYPR8",
+            "hasNew": false
+          },
+          {
+            "label": "Basta Berlin",
+            "type": "URL",
+            "target": "https://www.youtube.com/@BastaBerlin",
+            "check": true,
+            "latestVideoId": "3c0om3jjz4A",
+            "hasNew": true
+          },
+          {
+            "label": "Technikfaultier",
+            "type": "URL",
+            "target": "https://www.youtube.com/@Technikfaultier/videos",
+            "check": true,
+            "latestVideoId": "_9AMJU5N-wE",
+            "hasNew": false
+          },
+          {
+            "label": "TranslatedPress DE",
+            "type": "URL",
+            "target": "https://www.youtube.com/@TranslatedPressDE/videos",
+            "check": true,
+            "latestVideoId": "ghZRUef8ZjY",
+            "hasNew": false
+          },
+          {
+            "label": "Apfelfunk | Malte Kirchner",
+            "type": "URL",
+            "target": "https://www.youtube.com/@ApfelfunkPodcast/videos",
+            "check": true,
+            "latestVideoId": "6WR63kALc-o",
+            "hasNew": false
+          },
+          {
+            "label": "Grenzgänger Studios",
+            "type": "URL",
+            "target": "https://www.youtube.com/@Grenzg%C3%A4ngerStudios",
+            "check": true,
+            "latestVideoId": "9BMUpD6Eo-Y",
+            "hasNew": false
+          },
+          {
+            "label": "MWGFD-TV",
+            "type": "URL",
+            "target": "https://www.youtube.com/@MWGFD-TV/videos",
+            "check": true,
+            "latestVideoId": "00wOypJiLgI",
+            "hasNew": false
+          },
+          {
+            "label": "UnzensiertTV",
+            "type": "URL",
+            "target": "https://www.youtube.com/@UnzensiertTV1/videos",
+            "check": true,
+            "latestVideoId": "ekfORrxBQhA",
+            "hasNew": false
+          },
+          {
+            "label": "Einmischen! Politik Podcast",
+            "type": "URL",
+            "target": "https://www.youtube.com/@einmischenpodcast/videos",
+            "check": true,
+            "latestVideoId": "OB87Z-yIcPA",
+            "hasNew": false
+          },
+          {
+            "label": "Erichsen",
+            "type": "URL",
+            "target": "https://www.youtube.com/@ErichsenGeld/videos",
+            "check": true,
+            "latestVideoId": "55Rh1rS9KvI",
+            "hasNew": false
+          },
+          {
+            "label": "Politik \u0026amp; Co",
+            "type": "URL",
+            "target": "https://www.youtube.com/@politikundco/videos",
+            "check": true,
+            "latestVideoId": "FHQ9maw5h98",
+            "hasNew": false
+          },
+          {
+            "label": "Johannes Mickenbecker",
+            "type": "URL",
+            "target": "https://www.youtube.com/@johannes.mickenbecker/videos",
+            "check": true,
+            "latestVideoId": "vunj-o_d7gc",
+            "hasNew": false
+          },
+          {
+            "label": "The Real Life Guys",
+            "type": "URL",
+            "target": "https://www.youtube.com/@TheRealLifeGuys/videos",
+            "check": true,
+            "latestVideoId": "kajnrvHN9pk",
+            "hasNew": false
+          },
+          {
+            "label": "Martin Goldmann",
+            "type": "URL",
+            "target": "https://www.youtube.com/@martingoldmann/videos",
+            "check": true,
+            "latestVideoId": "yKrxeHNBhDo",
+            "hasNew": false
+          },
+          {
+            "label": "Yasemin",
+            "type": "URL",
+            "target": "https://www.youtube.com/@Yasemin_werdeproduktiv/videos",
+            "check": true,
+            "latestVideoId": "ZcgdR1dc4MI",
+            "hasNew": false
+          },
+          {
+            "label": "congTECH",
+            "type": "URL",
+            "target": "https://www.youtube.com/@congtech/videos",
+            "check": true,
+            "latestVideoId": "rX-EO3RwLUU",
+            "hasNew": false
+          },
+          {
+            "label": "Episoden auf Deutsch",
+            "type": "URL",
+            "target": "https://www.youtube.com/playlist?list\u003dPL22egh3ok4cP5lNmAjZJ5butYrtMhrYZD",
+            "check": true,
+            "latestVideoId": "V-z0k5xu1hM",
+            "hasNew": false
+          },
+          {
+            "label": "Michael Wenzel",
+            "type": "URL",
+            "target": "https://www.youtube.com/@michael_wenzel",
+            "check": true,
+            "latestVideoId": "9CXO64jHzg8",
+            "hasNew": false
+          }
         ]
       ],
       "check": false,
       "hasNew": false
     },
     {
-      "label": "Finanzen",
+      "label": "Noch anschauen",
       "type": "FOLDER",
       "target": "",
       "pages": [
         [
           {
-            "label": "BSDEX",
+            "label": "Guardians of the Galaxy",
             "type": "URL",
-            "target": "https://app.bsdex.de/trading/btc-eur",
+            "target": "https://www.amazon.de/gp/video/detail/B0CPVBDH6F/ref\u003datv_hm_sto_c_puV8Nn_brws_17_6?jic\u003d8%7CEgR0dm9k",
             "check": false,
-            "hasNew": false
+            "hasNew": true
           },
           {
-            "label": "Cointracking Dashboard",
+            "label": " Was ist dran, an den Vorwürfen gegen HKCM?",
             "type": "URL",
-            "target": "https://cointracking.info/dashboard",
-            "check": false,
-            "hasNew": false
-          },
-          {
-            "label": "Maple Leaf - Chart",
-            "type": "URL",
-            "target": "https://www.finanzen.net/goldmuenzen/maple-leaf-unze",
-            "check": false,
-            "hasNew": false
-          },
-          {
-            "label": "Goldpreis - Chart",
-            "type": "URL",
-            "target": "https://www.finanzen.net/rohstoffe/goldpreis",
-            "check": false,
-            "hasNew": false
-          },
-          {
-            "label": "Silberpreis - Chart",
-            "type": "URL",
-            "target": "https://www.finanzen.net/rohstoffe/silberpreis",
-            "check": false,
-            "hasNew": false
-          },
-          {
-            "label": "Ölpreis - Chart",
-            "type": "URL",
-            "target": "https://www.finanzen.net/rohstoffe/oelpreis",
-            "check": false,
-            "hasNew": false
-          },
-          {
-            "label": "Rohstoffe",
-            "type": "URL",
-            "target": "https://www.finanzen.net/rohstoffe",
-            "check": false,
-            "hasNew": false
-          },
-          {
-            "label": "Interactive Brokers",
-            "type": "URL",
-            "target": "https://www.interactivebrokers.ie/de/home.php",
-            "check": false,
-            "hasNew": false
-          },
-          {
-            "label": "Staatenlos",
-            "type": "URL",
-            "target": "https://staatenlos.ch/",
-            "check": false,
-            "hasNew": false
-          },
-          {
-            "label": "Hustler",
-            "type": "URL",
-            "target": "https://www.youtube.com/@HustlerBizReal/videos",
+            "target": "https://www.youtube.com/watch?v\u003dQWMehucVcww",
             "check": true,
-            "latestVideoId": "mo6qM7nZgT4",
+            "latestVideoId": "QWMehucVcww",
             "hasNew": false
           },
           {
-            "label": "MoneyMoney",
-            "type": "PROGRAM",
-            "target": "open \"/Applications/MoneyMoney.app\"",
+            "label": " Die RAM-Krise ist schlimmer als du denkst...",
+            "type": "URL",
+            "target": "https://www.youtube.com/watch?v\u003dXk3mxlbf4Fk",
+            "check": true,
+            "latestVideoId": "Xk3mxlbf4Fk",
+            "hasNew": true
+          },
+          {
+            "label": "Kostenlos Videos schneiden wie ein PRO in 2026 – DaVinci Resolve Einstieg",
+            "type": "URL",
+            "target": "https://www.youtube.com/watch?v\u003dZrZXFRZ-XE8",
+            "check": true,
+            "latestVideoId": "ZrZXFRZ-XE8",
+            "hasNew": true
+          },
+          null,
+          {
+            "label": "Triggerfm Mediathek",
+            "type": "URL",
+            "target": "https://triggerfm.com/mediathek/?video\u003d1778256026199g0b",
+            "check": false,
+            "hasNew": true
+          },
+          {
+            "label": "Archiv",
+            "type": "FOLDER",
+            "target": "",
+            "pages": [
+              [
+                {
+                  "label": " ChatGPT Codex ist UNGLAUBLICH! So benutzt du es als Anfänger",
+                  "type": "URL",
+                  "target": "https://www.youtube.com/watch?v\u003d98kIFt3cIsw",
+                  "check": true,
+                  "latestVideoId": "98kIFt3cIsw",
+                  "hasNew": false
+                }
+              ]
+            ],
             "check": false,
             "hasNew": false
-          }
+          },
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
         ]
       ],
       "check": false,
@@ -708,6 +926,49 @@
   ],
   [
     {
+      "label": "Textbausteine",
+      "type": "FOLDER",
+      "target": "",
+      "pages": [
+        [
+          {
+            "label": "Guten Morgen, Ilona!",
+            "type": "COPY",
+            "target": "Guten Morgen, Ilona!",
+            "check": false,
+            "hasNew": false
+          },
+          {
+            "label": "Schönen Abend, Ilona!",
+            "type": "COPY",
+            "target": "Schönen Abend, Ilona!",
+            "check": false,
+            "hasNew": false
+          },
+          null,
+          null,
+          null,
+          {
+            "label": "Viele Grüße Martin",
+            "type": "COPY",
+            "target": "Viele Grüße\nMartin",
+            "check": false,
+            "hasNew": false
+          },
+          {
+            "label": "Guten Morgen, Anna!",
+            "type": "COPY",
+            "target": "Guten Morgen, Anna!",
+            "check": false,
+            "hasNew": false
+          },
+          null
+        ]
+      ],
+      "check": false,
+      "hasNew": false
+    },
+    {
       "label": "Einkaufen",
       "type": "FOLDER",
       "target": "",
@@ -803,7 +1064,8 @@
             "target": "https://www.kaufda.de/Hamburg/Discounter/p-c5",
             "check": false,
             "hasNew": false
-          }
+          },
+          null
         ]
       ],
       "check": false,
@@ -888,41 +1150,6 @@
             "hasNew": false
           },
           null
-        ]
-      ],
-      "check": false,
-      "hasNew": false
-    },
-    {
-      "label": "Textbausteine",
-      "type": "FOLDER",
-      "target": "",
-      "pages": [
-        [
-          {
-            "label": "Guten Morgen, Ilona!",
-            "type": "COPY",
-            "target": "Guten Morgen, Ilona!",
-            "check": false,
-            "hasNew": false
-          },
-          {
-            "label": "Guten Morgen, Anna!",
-            "type": "COPY",
-            "target": "Guten Morgen, Anna!",
-            "check": false,
-            "hasNew": false
-          },
-          null,
-          null,
-          null,
-          {
-            "label": "Viele Grüße Martin",
-            "type": "COPY",
-            "target": "Viele Grüße\nMartin",
-            "check": false,
-            "hasNew": false
-          }
         ]
       ],
       "check": false,
@@ -1193,12 +1420,58 @@
       "check": false,
       "hasNew": false
     },
+    {
+      "label": "Calendar",
+      "type": "PROGRAM",
+      "target": "open \"/System/Applications/Calendar.app\"",
+      "check": false,
+      "hasNew": false
+    },
+    {
+      "label": "Google Calendar",
+      "type": "URL",
+      "target": "https://calendar.google.com/calendar/u/0/r",
+      "check": false,
+      "hasNew": false
+    },
+    {
+      "label": "LibreOffice",
+      "type": "PROGRAM",
+      "target": "open \"/Applications/LibreOffice.app\"",
+      "check": false,
+      "hasNew": false
+    },
+    {
+      "label": "XnViewMP",
+      "type": "PROGRAM",
+      "target": "open \"/Applications/XnViewMP.app\"",
+      "check": false,
+      "hasNew": false
+    },
+    {
+      "label": "MarkText",
+      "type": "PROGRAM",
+      "target": "open \"/Applications/MarkText.app\"",
+      "check": false,
+      "hasNew": false
+    },
+    {
+      "label": "Dhl Standorte finden",
+      "type": "URL",
+      "target": "https://www.dhl.de/de/privatkunden/dhl-standorte-finden.html",
+      "check": false,
+      "hasNew": false
+    },
     null,
     null,
     null,
-    null,
-    null,
-    null
+    {
+      "label": "Markdown Editor",
+      "type": "PROGRAM",
+      "target": "open \"/Applications/Markdown Editor.app\"",
+      "check": false,
+      "hasNew": false
+    }
   ],
   [
     null,

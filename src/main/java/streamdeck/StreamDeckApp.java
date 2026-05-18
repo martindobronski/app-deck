@@ -721,6 +721,20 @@ public class StreamDeckApp extends JFrame {
                     }
                     String suggested = suggestLabel(text);
                     if (suggested != null) labelField.setText(suggested);
+                    if (isYouTubeUrl(text)) {
+                        String urlSnapshot = text;
+                        String labelSnapshot = labelField.getText();
+                        new Thread(() -> {
+                            String title = fetchYouTubeTitle(text);
+                            if (title != null) {
+                                SwingUtilities.invokeLater(() -> {
+                                    if (targetArea.getText().trim().equals(urlSnapshot)
+                                        && labelField.getText().equals(labelSnapshot))
+                                        labelField.setText(title);
+                                });
+                            }
+                        }).start();
+                    }
                 } else if (text.startsWith("file://")) {
                     String plainPath = text.substring(text.startsWith("file:///") ? 7 : 6);
                     File f = new File(plainPath);
@@ -1527,6 +1541,46 @@ public class StreamDeckApp extends JFrame {
     private static boolean isYouTubeUrl(String url) {
         String lower = url.toLowerCase();
         return lower.contains("youtube.com") || lower.contains("youtu.be");
+    }
+
+    private String fetchYouTubeTitle(String url) {
+        try {
+            java.net.HttpURLConnection conn = (java.net.HttpURLConnection) new java.net.URL(url).openConnection();
+            conn.setConnectTimeout(10000);
+            conn.setReadTimeout(10000);
+            conn.setInstanceFollowRedirects(true);
+            conn.setRequestProperty("User-Agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36");
+            if (conn.getResponseCode() != 200) return null;
+            java.io.BufferedReader r = new java.io.BufferedReader(
+                new java.io.InputStreamReader(conn.getInputStream(), "UTF-8"));
+            java.util.regex.Pattern ogPattern = java.util.regex.Pattern.compile(
+                "<meta\\s+property=\"og:title\"\\s+content=\"([^\"]+)\"");
+            java.util.regex.Pattern titlePattern = java.util.regex.Pattern.compile(
+                "<title>(.*?)</title>", java.util.regex.Pattern.CASE_INSENSITIVE | java.util.regex.Pattern.DOTALL);
+            char[] buf = new char[8192];
+            int n;
+            StringBuilder html = new StringBuilder();
+            while ((n = r.read(buf)) > 0) {
+                html.append(buf, 0, n);
+                String h = html.toString();
+                java.util.regex.Matcher om = ogPattern.matcher(h);
+                if (om.find()) {
+                    String t = om.group(1).trim();
+                    r.close();
+                    return t.isEmpty() ? null : t;
+                }
+                java.util.regex.Matcher tm = titlePattern.matcher(h);
+                if (tm.find()) {
+                    String t = tm.group(1).trim();
+                    if (t.endsWith(" - YouTube"))
+                        t = t.substring(0, t.length() - " - YouTube".length());
+                    r.close();
+                    return t.isEmpty() ? null : t;
+                }
+            }
+            r.close();
+            return null;
+        } catch (Exception e) { return null; }
     }
 
     private String suggestLabel(String url) {
