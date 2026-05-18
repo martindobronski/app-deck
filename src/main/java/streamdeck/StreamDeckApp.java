@@ -88,7 +88,7 @@ public class StreamDeckApp extends JFrame {
         JMenuItem aboutItem = new JMenuItem("Über App Desk");
         aboutItem.setMnemonic('b');
         aboutItem.addActionListener(e -> JOptionPane.showMessageDialog(this,
-            "App Desk V1.1\nEin Stream-Deck-artiger Schaltflächenstarter für macOS.\n\nErstellt am 18.05.26",
+            "App Desk V1.3\nEin Stream-Deck-artiger Schaltflächenstarter für macOS.\n\nErstellt am 18.05.26",
             "Über App Desk", JOptionPane.INFORMATION_MESSAGE));
         appMenu.add(aboutItem);
         appMenu.addSeparator();
@@ -178,7 +178,7 @@ public class StreamDeckApp extends JFrame {
         bg.add(gridPanel, BorderLayout.CENTER);
         add(bg, BorderLayout.CENTER);
 
-        JLabel versionLabel = new JLabel("V1.1 vom 18.05.26", SwingConstants.CENTER);
+        JLabel versionLabel = new JLabel("V1.3 vom 18.05.26", SwingConstants.CENTER);
         versionLabel.setFont(versionLabel.getFont().deriveFont(9f));
         versionLabel.setForeground(new Color(150, 150, 150));
         versionLabel.setBackground(new Color(50, 50, 55));
@@ -1843,16 +1843,44 @@ public class StreamDeckApp extends JFrame {
                 String appSupport = System.getProperty("user.home")
                     + "/Library/Application Support/App Deck/config.json";
                 if (!new File(appSupport).exists()) {
-                    try {
-                        new File(appSupport).getParentFile().mkdirs();
-                        ConfigLoader.save(appSupport, List.of(new java.util.ArrayList<>()));
-                    } catch (IOException e) {
-                        JOptionPane.showMessageDialog(null,
-                            "Config-Datei nicht gefunden: " + configPath
-                                + "\nKonnte auch keine Standard-Konfiguration anlegen:\n"
-                                + appSupport + "\n" + e.getMessage(),
-                            "Fehler", JOptionPane.ERROR_MESSAGE);
-                        return;
+                    new File(appSupport).getParentFile().mkdirs();
+                    int choice = JOptionPane.showOptionDialog(null,
+                        "Es wurde keine Konfigurationsdatei gefunden.\n"
+                            + "Möchtest du eine vorhandene config.json auswählen\n"
+                            + "oder eine leere Konfiguration neu anlegen?",
+                        "Konfiguration", JOptionPane.YES_NO_OPTION,
+                        JOptionPane.QUESTION_MESSAGE, null,
+                        new String[]{"Auswählen...", "Neu erstellen"}, "Auswählen...");
+                    if (choice == 0) {
+                        JFileChooser fc = new JFileChooser();
+                        fc.setDialogTitle("config.json auswählen");
+                        javax.swing.filechooser.FileNameExtensionFilter filter =
+                            new javax.swing.filechooser.FileNameExtensionFilter("JSON-Dateien", "json");
+                        fc.setFileFilter(filter);
+                        if (fc.showOpenDialog(null) == JFileChooser.APPROVE_OPTION) {
+                            try {
+                                java.nio.file.Files.copy(fc.getSelectedFile().toPath(),
+                                    new File(appSupport).toPath(),
+                                    java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+                            } catch (IOException e) {
+                                JOptionPane.showMessageDialog(null,
+                                    "Fehler beim Kopieren der Konfiguration:\n" + e.getMessage(),
+                                    "Fehler", JOptionPane.ERROR_MESSAGE);
+                                return;
+                            }
+                        } else {
+                            return;
+                        }
+                    } else {
+                        try {
+                            ConfigLoader.save(appSupport, List.of(new java.util.ArrayList<>()));
+                        } catch (IOException e) {
+                            JOptionPane.showMessageDialog(null,
+                                "Konnte keine Standard-Konfiguration anlegen:\n"
+                                    + appSupport + "\n" + e.getMessage(),
+                                "Fehler", JOptionPane.ERROR_MESSAGE);
+                            return;
+                        }
                     }
                 }
                 configPath = appSupport;

@@ -14,13 +14,14 @@ echo "=== Building JAR ==="
 mvn package -q
 
 echo "=== Creating .app bundle ==="
+rm -rf dist/
 jpackage \
   --type app-image \
   --name "$APP_NAME" \
-  --app-version "1.1" \
+  --app-version "1.3" \
   --icon "$ICON" \
   --input target/ \
-  --main-jar streamdeck-1.1.jar \
+  --main-jar streamdeck-1.3.jar \
   --main-class streamdeck.StreamDeckApp \
   --mac-package-identifier "$BUNDLE_ID" \
   --dest dist/
