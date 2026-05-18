@@ -88,7 +88,7 @@ public class StreamDeckApp extends JFrame {
         JMenuItem aboutItem = new JMenuItem("Über App Desk");
         aboutItem.setMnemonic('b');
         aboutItem.addActionListener(e -> JOptionPane.showMessageDialog(this,
-            "App Desk V1.0\nEin Stream-Deck-artiger Schaltflächenstarter für macOS.\n\nErstellt am 16.05.26",
+            "App Desk V1.1\nEin Stream-Deck-artiger Schaltflächenstarter für macOS.\n\nErstellt am 18.05.26",
             "Über App Desk", JOptionPane.INFORMATION_MESSAGE));
         appMenu.add(aboutItem);
         appMenu.addSeparator();
@@ -178,7 +178,7 @@ public class StreamDeckApp extends JFrame {
         bg.add(gridPanel, BorderLayout.CENTER);
         add(bg, BorderLayout.CENTER);
 
-        JLabel versionLabel = new JLabel("V1.0 vom 16.05.26", SwingConstants.CENTER);
+        JLabel versionLabel = new JLabel("V1.1 vom 18.05.26", SwingConstants.CENTER);
         versionLabel.setFont(versionLabel.getFont().deriveFont(9f));
         versionLabel.setForeground(new Color(150, 150, 150));
         versionLabel.setBackground(new Color(50, 50, 55));
@@ -1836,11 +1836,27 @@ public class StreamDeckApp extends JFrame {
         String configPath = args.length > 0 ? args[0] : "config.json";
 
         if (!new File(configPath).exists()) {
-            JOptionPane.showMessageDialog(null,
-                "Config-Datei nicht gefunden: " + configPath
-                    + "\nBitte starte die Anwendung aus dem Verzeichnis, in dem config.json liegt.",
-                "Fehler", JOptionPane.ERROR_MESSAGE);
-            return;
+            String nearBundle = findConfigNearAppBundle();
+            if (nearBundle != null) {
+                configPath = nearBundle;
+            } else {
+                String appSupport = System.getProperty("user.home")
+                    + "/Library/Application Support/App Deck/config.json";
+                if (!new File(appSupport).exists()) {
+                    try {
+                        new File(appSupport).getParentFile().mkdirs();
+                        ConfigLoader.save(appSupport, List.of(new java.util.ArrayList<>()));
+                    } catch (IOException e) {
+                        JOptionPane.showMessageDialog(null,
+                            "Config-Datei nicht gefunden: " + configPath
+                                + "\nKonnte auch keine Standard-Konfiguration anlegen:\n"
+                                + appSupport + "\n" + e.getMessage(),
+                            "Fehler", JOptionPane.ERROR_MESSAGE);
+                        return;
+                    }
+                }
+                configPath = appSupport;
+            }
         }
 
         List<List<ButtonConfig>> pages;
@@ -1854,5 +1870,22 @@ public class StreamDeckApp extends JFrame {
         }
         String finalConfigPath = configPath;
         SwingUtilities.invokeLater(() -> new StreamDeckApp(pages, finalConfigPath).setVisible(true));
+    }
+
+    private static String findConfigNearAppBundle() {
+        try {
+            String jarPath = StreamDeckApp.class.getProtectionDomain()
+                .getCodeSource().getLocation().toURI().getPath();
+            File dir = new File(jarPath).getParentFile();
+            while (dir != null) {
+                if (dir.getName().endsWith(".app")) {
+                    File config = new File(dir.getParentFile(), "config.json");
+                    if (config.exists()) return config.getAbsolutePath();
+                    return null;
+                }
+                dir = dir.getParentFile();
+            }
+        } catch (Exception e) {}
+        return null;
     }
 }

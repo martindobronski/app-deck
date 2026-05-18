@@ -276,7 +276,7 @@
             "target": "https://www.youtube.com/@RobynHD/videos",
             "check": true,
             "latestVideoId": "t9Bxslm7QjA",
-            "hasNew": true
+            "hasNew": false
           },
           {
             "label": "CoinCheckTV",

@@ -17,10 +17,10 @@ echo "=== Creating .app bundle ==="
 jpackage \
   --type app-image \
   --name "$APP_NAME" \
-  --app-version "1.0" \
+  --app-version "1.1" \
   --icon "$ICON" \
   --input target/ \
-  --main-jar streamdeck-1.0-SNAPSHOT.jar \
+  --main-jar streamdeck-1.1.jar \
   --main-class streamdeck.StreamDeckApp \
   --mac-package-identifier "$BUNDLE_ID" \
   --dest dist/
