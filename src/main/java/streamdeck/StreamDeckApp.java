@@ -1058,7 +1058,7 @@ public class StreamDeckApp extends JFrame {
     }
 
     private void startVideoChecker() {
-        log("YouTube-Prüfung gestartet (Intervall: " + CHECK_INTERVAL_MINUTES + " Minuten)");
+        log("YouTube-Prüfung gestartet");
         scheduler.scheduleWithFixedDelay(this::checkAllUrls, 10, CHECK_INTERVAL_MINUTES * 60L, TimeUnit.SECONDS);
     }
 
@@ -1118,15 +1118,11 @@ public class StreamDeckApp extends JFrame {
                 if (stored != null) {
                     cfg.setHasNew(true);
                     found++;
-                    log("  " + cfg.getLabel() + ": NEU! " + stored + " -> " + vid);
-                } else {
-                    log("  " + cfg.getLabel() + ": erste ID gespeichert (" + vid + ")");
+                    log("  neues Video gefunden / Kanal: " + cfg.getLabel());
                 }
                 cfg.setLatestVideoId(vid);
                 try { ConfigLoader.save(configPath, pages); } catch (IOException ex) {}
                 SwingUtilities.invokeLater(this::updateAllButtons);
-            } else {
-                log("  " + cfg.getLabel() + ": vid=" + vid + " stored=" + stored + " -> keine Änderung");
             }
         }
         return found;
@@ -1138,11 +1134,7 @@ public class StreamDeckApp extends JFrame {
             conn.setConnectTimeout(10000);
             conn.setReadTimeout(10000);
             conn.setRequestProperty("User-Agent", "Mozilla/5.0");
-            int status = conn.getResponseCode();
-            if (status != 200) {
-                log("  HTTP " + status + " für " + url);
-                return null;
-            }
+            if (conn.getResponseCode() != 200) return null;
             BufferedReader r = new BufferedReader(new InputStreamReader(conn.getInputStream(), "UTF-8"));
             StringBuilder html = new StringBuilder();
             char[] buf = new char[4096];
@@ -1151,15 +1143,9 @@ public class StreamDeckApp extends JFrame {
             r.close();
             java.util.regex.Pattern p = java.util.regex.Pattern.compile("\"videoId\":\"([A-Za-z0-9_-]{6,})\"");
             java.util.regex.Matcher m = p.matcher(html);
-            if (m.find()) {
-                String vid = m.group(1);
-                log("  Video-ID gefunden: " + vid);
-                return vid;
-            }
-            log("  Keine Video-ID in der Seite gefunden");
+            if (m.find()) return m.group(1);
             return null;
         } catch (Exception e) {
-            log("  Fehler beim Fetch: " + e.getClass().getSimpleName() + " - " + e.getMessage());
             return null;
         }
     }

@@ -267,7 +267,7 @@
             "type": "URL",
             "target": "https://www.youtube.com/@CryptoHeroesYT/videos",
             "check": true,
-            "latestVideoId": "uSb7DZ5wvMQ",
+            "latestVideoId": "7o4afyOUpWs",
             "hasNew": false
           },
           {
@@ -275,8 +275,8 @@
             "type": "URL",
             "target": "https://www.youtube.com/@RobynHD/videos",
             "check": true,
-            "latestVideoId": "tRgKUdjg9Sg",
-            "hasNew": false
+            "latestVideoId": "t9Bxslm7QjA",
+            "hasNew": true
           },
           {
             "label": "CoinCheckTV",
@@ -323,8 +323,8 @@
             "type": "URL",
             "target": "https://www.youtube.com/@BITCOIN-HOTEL/videos",
             "check": true,
-            "latestVideoId": "OGKKPxsVlT0",
-            "hasNew": false
+            "latestVideoId": "oO2HXfyzA5M",
+            "hasNew": true
           }
         ],
         [],
@@ -375,8 +375,8 @@
             "type": "URL",
             "target": "https://www.youtube.com/@willkommenbeidenhartmanns78/videos",
             "check": true,
-            "latestVideoId": "ur1iP4bqYdY",
-            "hasNew": false
+            "latestVideoId": "6kc1V6wX1uQ",
+            "hasNew": true
           },
           {
             "label": "Rafael Zeier",
@@ -391,8 +391,8 @@
             "type": "URL",
             "target": "https://www.youtube.com/@37Grad/videos",
             "check": true,
-            "latestVideoId": "9juJnl0Ko5M",
-            "hasNew": false
+            "latestVideoId": "3TPTKfvrUug",
+            "hasNew": true
           },
           {
             "label": "Zeitplanerin",
@@ -424,7 +424,7 @@
             "target": "https://www.youtube.com/@Actuarium/videos",
             "check": true,
             "latestVideoId": "gHMSB0WSF6k",
-            "hasNew": true
+            "hasNew": false
           },
           {
             "label": "Jasmin Kosubek",
@@ -455,8 +455,8 @@
             "type": "URL",
             "target": "https://www.youtube.com/@gamesoftruth2/videos",
             "check": true,
-            "latestVideoId": "-GZyxTz5cuE",
-            "hasNew": false
+            "latestVideoId": "zI6P3f6Ijtk",
+            "hasNew": true
           },
           {
             "label": "Jonas Keil",
@@ -487,8 +487,8 @@
             "type": "URL",
             "target": "https://www.youtube.com/@MorgensternNEWS/videos",
             "check": true,
-            "latestVideoId": "MQIsVlpf8Mo",
-            "hasNew": false
+            "latestVideoId": "tOXHowHbGTg",
+            "hasNew": true
           },
           {
             "label": "Florian Dalwigk",
@@ -561,7 +561,7 @@
             "type": "URL",
             "target": "https://www.youtube.com/@BastaBerlin",
             "check": true,
-            "latestVideoId": "3c0om3jjz4A",
+            "latestVideoId": "II1NS7N2qTY",
             "hasNew": true
           },
           {
@@ -594,7 +594,7 @@
             "target": "https://www.youtube.com/@Grenzg%C3%A4ngerStudios",
             "check": true,
             "latestVideoId": "9BMUpD6Eo-Y",
-            "hasNew": false
+            "hasNew": true
           },
           {
             "label": "MWGFD-TV",
@@ -609,8 +609,8 @@
             "type": "URL",
             "target": "https://www.youtube.com/@UnzensiertTV1/videos",
             "check": true,
-            "latestVideoId": "ekfORrxBQhA",
-            "hasNew": false
+            "latestVideoId": "epLOXxsWap4",
+            "hasNew": true
           },
           {
             "label": "Einmischen! Politik Podcast",
@@ -625,16 +625,16 @@
             "type": "URL",
             "target": "https://www.youtube.com/@ErichsenGeld/videos",
             "check": true,
-            "latestVideoId": "55Rh1rS9KvI",
-            "hasNew": false
+            "latestVideoId": "m5NXERi-ovU",
+            "hasNew": true
           },
           {
             "label": "Politik \u0026amp; Co",
             "type": "URL",
             "target": "https://www.youtube.com/@politikundco/videos",
             "check": true,
-            "latestVideoId": "FHQ9maw5h98",
-            "hasNew": false
+            "latestVideoId": "znL0v8S_9iI",
+            "hasNew": true
           },
           {
             "label": "Johannes Mickenbecker",
@@ -649,8 +649,8 @@
             "type": "URL",
             "target": "https://www.youtube.com/@TheRealLifeGuys/videos",
             "check": true,
-            "latestVideoId": "kajnrvHN9pk",
-            "hasNew": false
+            "latestVideoId": "OK4zS968E5M",
+            "hasNew": true
           },
           {
             "label": "Martin Goldmann",
@@ -708,7 +708,7 @@
             "target": "https://www.youtube.com/@BastianWoelfle/videos",
             "check": true,
             "latestVideoId": "WX9uEpGaV48",
-            "hasNew": true
+            "hasNew": false
           },
           {
             "label": "#heiseshow",
@@ -716,7 +716,25 @@
             "target": "https://www.youtube.com/watch?v\u003dFsF_Jn1kxnE\u0026list\u003dPLUoWfXKEShjcui84g0hQ_NIFXYA9geFpR",
             "check": true,
             "latestVideoId": "FsF_Jn1kxnE",
-            "hasNew": true
+            "hasNew": false
+          },
+          {
+            "label": "Einfach Erklärt",
+            "type": "URL",
+            "target": "https://www.youtube.com/@einfach-erklaert/videos",
+            "check": true,
+            "latestVideoId": "j5RbFjrh-I0",
+            "hasNew": false
+          },
+          null,
+          null,
+          {
+            "label": "Die Dummmen",
+            "type": "URL",
+            "target": "https://www.youtube.com/@DieDummmen",
+            "check": true,
+            "latestVideoId": "3qhd2XDpLhM",
+            "hasNew": false
           }
         ]
       ],
@@ -737,20 +755,12 @@
             "hasNew": true
           },
           {
-            "label": " Was ist dran, an den Vorwürfen gegen HKCM?",
-            "type": "URL",
-            "target": "https://www.youtube.com/watch?v\u003dQWMehucVcww",
-            "check": true,
-            "latestVideoId": "QWMehucVcww",
-            "hasNew": false
-          },
-          {
             "label": " Die RAM-Krise ist schlimmer als du denkst...",
             "type": "URL",
             "target": "https://www.youtube.com/watch?v\u003dXk3mxlbf4Fk",
             "check": true,
             "latestVideoId": "Xk3mxlbf4Fk",
-            "hasNew": true
+            "hasNew": false
           },
           {
             "label": "Kostenlos Videos schneiden wie ein PRO in 2026 – DaVinci Resolve Einstieg",
@@ -760,6 +770,7 @@
             "latestVideoId": "ZrZXFRZ-XE8",
             "hasNew": true
           },
+          null,
           null,
           {
             "label": "Triggerfm Mediathek",
@@ -1175,7 +1186,13 @@
             "check": false,
             "hasNew": false
           },
-          null
+          {
+            "label": "HandBrake",
+            "type": "PROGRAM",
+            "target": "open \"/Applications/HandBrake.app\"",
+            "check": false,
+            "hasNew": false
+          }
         ]
       ],
       "check": false,
@@ -1488,7 +1505,13 @@
       "check": false,
       "hasNew": false
     },
-    null,
+    {
+      "label": "Nebenan",
+      "type": "URL",
+      "target": "https://nebenan.de/",
+      "check": false,
+      "hasNew": false
+    },
     null,
     null,
     {
