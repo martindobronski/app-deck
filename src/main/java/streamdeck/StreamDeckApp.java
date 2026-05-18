@@ -222,7 +222,9 @@ public class StreamDeckApp extends JFrame {
                         g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
                         Font orig = g2.getFont();
                         g2.setFont(orig.deriveFont(Font.BOLD, 11f));
-                        String badge = "neu";
+                        Object countObj = getClientProperty("newCount");
+                        int cnt = countObj instanceof Number ? ((Number) countObj).intValue() : 1;
+                        String badge = "neu: " + cnt;
                         FontMetrics fm = g2.getFontMetrics();
                         int bw = fm.stringWidth(badge) + 10;
                         int bh = fm.getHeight();
@@ -529,16 +531,17 @@ public class StreamDeckApp extends JFrame {
                 btn.setBorder(ROUNDED_BORDER);
             }
             if ("FOLDER".equals(cfg.getType()) && cfg.getPages() != null) {
-                boolean folderNew = false;
+                int folderNewCount = 0;
                 for (List<ButtonConfig> page : cfg.getPages()) {
                     for (ButtonConfig child : page) {
-                        if (child != null && child.isHasNew()) { folderNew = true; break; }
+                        if (child != null && child.isHasNew()) folderNewCount++;
                     }
-                    if (folderNew) break;
                 }
-                btn.putClientProperty("hasNew", folderNew);
+                btn.putClientProperty("hasNew", folderNewCount > 0);
+                btn.putClientProperty("newCount", folderNewCount);
             } else {
                 btn.putClientProperty("hasNew", cfg.isHasNew());
+                btn.putClientProperty("newCount", cfg.isHasNew() ? 1 : 0);
             }
         } else {
             btn.setText("");
@@ -690,7 +693,7 @@ public class StreamDeckApp extends JFrame {
         JComboBox<String> typeBox = new JComboBox<>(new String[]{"URL", "PROGRAM", "FILE", "FOLDER", "COPY"});
         typeBox.setSelectedItem(cfg.getType());
 
-        JTextArea targetArea = new JTextArea(cfg.getTarget(), 2, 20);
+        JTextArea targetArea = new JTextArea(cfg.getTarget(), 3, 20);
         targetArea.setLineWrap(true);
         targetArea.setWrapStyleWord(true);
 
@@ -743,7 +746,7 @@ public class StreamDeckApp extends JFrame {
         });
 
         JScrollPane targetScroll = new JScrollPane(targetArea);
-        targetScroll.setPreferredSize(new Dimension(200, 40));
+        targetScroll.setPreferredSize(new Dimension(200, 60));
 
         JButton browseBtn = new JButton("...");
         browseBtn.setPreferredSize(new Dimension(32, 26));
@@ -801,9 +804,9 @@ public class StreamDeckApp extends JFrame {
             boolean isCopy = "COPY".equals(typeBox.getSelectedItem());
             boolean isUrl = "URL".equals(typeBox.getSelectedItem());
             targetArea.setEnabled(!isFolder);
-            targetArea.setRows(isCopy ? 5 : 2);
+            targetArea.setRows(isCopy ? 5 : 3);
             browseBtn.setVisible(!isFolder && !isCopy);
-            targetScroll.setPreferredSize(new Dimension(200, isCopy ? 90 : 40));
+            targetScroll.setPreferredSize(new Dimension(200, isCopy ? 90 : 60));
             videoCheckBox.setVisible(isUrl && isYouTubeUrl(targetArea.getText()));
         });
 
