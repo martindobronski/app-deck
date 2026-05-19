@@ -1,5 +1,6 @@
 package streamdeck;
 
+// Todo: Anpassung auf Windows muss noch gemacht werden
 import javax.imageio.ImageIO;
 import javax.swing.*;
 import javax.swing.border.AbstractBorder;
