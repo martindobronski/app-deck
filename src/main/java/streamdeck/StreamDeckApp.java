@@ -10,6 +10,7 @@ import java.awt.*;
 import java.awt.datatransfer.StringSelection;
 import java.awt.event.KeyEvent;
 import java.awt.event.InputEvent;
+import java.awt.event.ActionEvent;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
@@ -380,12 +381,44 @@ public class StreamDeckApp extends JFrame {
         startVideoChecker();
 
         darkBg = new JWindow();
+        darkBg.setAutoRequestFocus(false);
+        darkBg.setFocusableWindowState(false);
         darkBg.setBackground(new Color(30, 30, 35));
         JPanel darkPanel = new JPanel();
         darkPanel.setBackground(new Color(30, 30, 35));
+        darkPanel.addMouseListener(new java.awt.event.MouseAdapter() {
+            @Override
+            public void mousePressed(java.awt.event.MouseEvent e) {
+                if (fullscreenMode) {
+                    SwingUtilities.invokeLater(() -> {
+                        toFront();
+                        requestFocus();
+                    });
+                }
+            }
+        });
         darkBg.setContentPane(darkPanel);
         Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
         darkBg.setBounds(0, 0, screenSize.width, screenSize.height);
+
+        addWindowFocusListener(new java.awt.event.WindowFocusListener() {
+            @Override
+            public void windowLostFocus(java.awt.event.WindowEvent e) {
+                if (fullscreenMode && e.getOppositeWindow() == darkBg) {
+                    SwingUtilities.invokeLater(() -> { toFront(); requestFocus(); });
+                }
+            }
+            @Override
+            public void windowGainedFocus(java.awt.event.WindowEvent e) {}
+        });
+
+        Toolkit.getDefaultToolkit().addAWTEventListener(event -> {
+            if (fullscreenMode && event instanceof ActionEvent && ((ActionEvent) event).getSource() instanceof JMenuItem) {
+                javax.swing.Timer t = new javax.swing.Timer(50, e -> { if (fullscreenMode) toFront(); });
+                t.setRepeats(false);
+                t.start();
+            }
+        }, AWTEvent.ACTION_EVENT_MASK);
 
         addWindowListener(new java.awt.event.WindowAdapter() {
             @Override
@@ -1087,7 +1120,6 @@ public class StreamDeckApp extends JFrame {
             fullscreenMode = true;
             darkBg.setVisible(true);
             toFront();
-            requestFocus();
         } else {
             fullscreenMode = false;
             darkBg.setVisible(false);
