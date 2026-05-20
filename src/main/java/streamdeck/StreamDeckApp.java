@@ -446,7 +446,6 @@ public class StreamDeckApp extends JFrame {
             }
             if (!e.isMetaDown() && !e.isControlDown() && !e.isAltDown()) {
                 if (e.getKeyCode() == KeyEvent.VK_ESCAPE && !searchDialogOpen) {
-                    if (fullscreenMode) { toggleFullscreen(); return true; }
                     if (currentFolder != null) { leaveFolder(); return true; }
                     if (currentPage > 0) { prevPage(); return true; }
                 }
