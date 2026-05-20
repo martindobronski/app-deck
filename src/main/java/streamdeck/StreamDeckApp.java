@@ -72,6 +72,7 @@ public class StreamDeckApp extends JFrame {
         return t;
     });
     private boolean fullscreenMode;
+    private boolean configDirty;
     private JWindow darkBg;
 
     public StreamDeckApp(List<List<ButtonConfig>> pages, String configPath, boolean focusMode) {
@@ -81,6 +82,7 @@ public class StreamDeckApp extends JFrame {
         this.fullscreenMode = focusMode;
 
         log("=== App Desk gestartet ===");
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> { if (configDirty) saveConfig(); log("=== App Desk beendet ==="); }));
         setDefaultCloseOperation(EXIT_ON_CLOSE);
         setTitle("App Deck");
         setIconImage(loadAppIcon());
@@ -705,6 +707,7 @@ public class StreamDeckApp extends JFrame {
             folderCfg.setPages(folderPages);
             while (pageIdx >= btns.size()) btns.add(null);
             btns.set(pageIdx, folderCfg);
+            configDirty = true;
             saveAndRefresh();
         });
         popup.add(folderItem);
@@ -715,6 +718,7 @@ public class StreamDeckApp extends JFrame {
             JMenuItem clearItem = new JMenuItem("Entfernen");
             clearItem.addActionListener(ev -> {
                 btns.set(pageIdx, null);
+                configDirty = true;
                 saveAndRefresh();
             });
             popup.add(clearItem);
@@ -722,6 +726,7 @@ public class StreamDeckApp extends JFrame {
             JMenuItem markItem = new JMenuItem("Als neu markieren");
             markItem.addActionListener(ev -> {
                 cfg.setHasNew(true);
+                configDirty = true;
                 saveConfig();
                 updateAllButtons();
             });
@@ -949,6 +954,7 @@ public class StreamDeckApp extends JFrame {
             updated.setCheck(videoCheckBox.isSelected());
             while (pageIdx >= btns.size()) btns.add(null);
             btns.set(pageIdx, updated);
+            configDirty = true;
             saveAndRefresh();
         }
     }
@@ -993,6 +999,7 @@ public class StreamDeckApp extends JFrame {
                 int emptyIdx = findEmptySlot(prevBtns);
                 if (emptyIdx >= 0) prevBtns.set(emptyIdx, sourceCfg);
                 else prevBtns.add(sourceCfg);
+                configDirty = true;
                 saveConfig();
                 if (currentPage == 0 && currentFolder != null) { leaveFolder(); return; }
                 iconCache.clear();
@@ -1010,6 +1017,7 @@ public class StreamDeckApp extends JFrame {
                 int emptyIdx = findEmptySlot(nextBtns);
                 if (emptyIdx >= 0) nextBtns.set(emptyIdx, sourceCfg);
                 else nextBtns.add(sourceCfg);
+                configDirty = true;
                 saveConfig();
                 iconCache.clear();
                 updateAllButtons();
@@ -1047,6 +1055,7 @@ public class StreamDeckApp extends JFrame {
         updateButton(dragSourceIndex);
         updateButton(targetGrid);
 
+        configDirty = true;
         saveConfig();
     }
 
@@ -1070,6 +1079,7 @@ public class StreamDeckApp extends JFrame {
     private void saveConfig() {
         try {
             ConfigLoader.saveWithSettings(configPath, pages, fullscreenMode);
+            configDirty = false;
         } catch (IOException ex) {
             JOptionPane.showMessageDialog(this, "Fehler beim Speichern: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
         }
@@ -1118,6 +1128,7 @@ public class StreamDeckApp extends JFrame {
             fullscreenMode = false;
             darkBg.setVisible(false);
         }
+        configDirty = true;
         saveConfig();
     }
 
@@ -1180,6 +1191,7 @@ public class StreamDeckApp extends JFrame {
                     log("  neues Video gefunden / Kanal: " + cfg.getLabel());
                 }
                 cfg.setLatestVideoId(vid);
+                configDirty = true;
                 saveConfig();
                 SwingUtilities.invokeLater(this::updateAllButtons);
             }
@@ -1239,6 +1251,7 @@ public class StreamDeckApp extends JFrame {
         }
         if (cfg.isHasNew()) {
             cfg.setHasNew(false);
+            configDirty = true;
             saveConfig();
             updateAllButtons();
         }
