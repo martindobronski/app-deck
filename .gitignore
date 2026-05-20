@@ -6,3 +6,18 @@ dependency-reduced-pom.xml
 App Deck.app/
 dist/
 appdeck.log
+
+# Benutzerkonfiguration
+config.json
+
+# Prompts / Arbeitsnotizen
+Prompts/
+
+# Website
+website/
+
+# Alte Builds / Notizen / Helfer
+App-Deck-v1.1.zip
+Liesmich.md
+Umstellungsplan Single Code-Base Variante.md
+raycaststartappdeskscript.sh
