@@ -23,13 +23,13 @@ Version 1.4 vom 20.05.2026
 
 ### 2.2 Schaltflächen-Typen
 
-| Typ     | Beschreibung                                                           |
-|---------|----------------------------------------------------------------------|
-| URL     | Öffnet eine Webseite im Standard-Browser, inkl. Favicon-Ladung       |
-| PROGRAM | Startet ein Programm (macOS `open -a` oder direkter Pfad)            |
-| FILE    | Öffnet eine Datei oder einen Ordner mit der Standard-Anwendung        |
-| FOLDER  | Erzeugt eine Unterseite mit eigenem Raster und Navigation             |
-| COPY    | Kopiert einen beliebigen Text in die Zwischenablage                   |
+| Typ     | Beschreibung                                                   |
+| ------- | -------------------------------------------------------------- |
+| URL     | Öffnet eine Webseite im Standard-Browser, inkl. Favicon-Ladung |
+| PROGRAM | Startet ein Programm (macOS `open -a` oder direkter Pfad)      |
+| FILE    | Öffnet eine Datei oder einen Ordner mit der Standard-Anwendung |
+| FOLDER  | Erzeugt eine Unterseite mit eigenem Raster und Navigation      |
+| COPY    | Kopiert einen beliebigen Text in die Zwischenablage            |
 
 ### 2.3 Seiten und Navigation
 
@@ -322,12 +322,14 @@ Startet nur eine Instanz (PID-Datei in `/tmp/app-desk.pid`).
 
 Rechtsklick -> "Bearbeiten..." oder auf leere Schaltfläche klicken.
 Der Konfigurationsdialog erlaubt:
+
 - Label: Anzeigename
 - Typ: URL, PROGRAM, FILE, FOLDER, COPY
 - Ziel: URL, Pfad, Befehl, Text
 - "Auf neue Videos prufen": Nur fur YouTube-URLs
 
 Der Typ und Label werden automatisch erkannt:
+
 - `http://...` -> URL (Label aus Domain)
 - `open -a ...` -> PROGRAM (Label aus App-Name)
 - `... .app` -> PROGRAM (Label aus Dateiname)
@@ -336,6 +338,7 @@ Der Typ und Label werden automatisch erkannt:
 ### 6.2 Schaltflächen anordnen
 
 Drag & Drop: Button an die gewunschte Position ziehen.
+
 - Auf Pfeil-links/rechts: Seite wechseln
 - Auf Ordner: in Ordner verschieben
 
@@ -350,6 +353,7 @@ Cmd+F oder einfach tippen: Durchsucht alle Seiten und Ordner nach Label/Ziel.
 ### 6.5 Konfiguration sichern
 
 Menupunkte:
+
 - `App Desk -> Konfiguration sichern` (Cmd+B): Kopiert `config.json` nach `bak/YYYYMMDD_HHmmss_config.json`
 
 ---
@@ -375,10 +379,10 @@ jpackage \                                      # .app-Bundle erzeugen
 
 ### 7.2 Abhängigkeiten
 
-| Abhängigkeit | Version | Verwendung                    |
-|-------------|---------|-------------------------------|
-| Gson        | 2.11.0  | JSON-Persistenz               |
-| Maven Shade | 3.6.0   | Fat-JAR (alle Dependencies)   |
+| Abhängigkeit | Version | Verwendung                  |
+| ------------ | ------- | --------------------------- |
+| Gson         | 2.11.0  | JSON-Persistenz             |
+| Maven Shade  | 3.6.0   | Fat-JAR (alle Dependencies) |
 
 ### 7.3 macOS-spezifische Funktionen
 
@@ -398,21 +402,22 @@ jpackage \                                      # .app-Bundle erzeugen
 
 ### 7.5 Farben und Design
 
-| Element          | Farbe(n)                                                    |
-|------------------|-------------------------------------------------------------|
-| Hintergründ      | Verlauf 35,35,40 -> 50,50,55                                |
-| Button normal    | Verlauf 248,248,250 -> 225,225,230                          |
-| Button Hover     | Verlauf 230,245,255 -> 200,225,245                          |
-| Button gedrückt  | Verlauf 210,210,215 -> 185,185,190                          |
-| Rahmen (running) | Grün (0,180,0), 4px                                         |
-| Rahmen (normal)  | Grau (170,170,175), 1px                                     |
-| Fokus-Ring       | Gold/orange (255,200,0), 4px, gestrichelt 8/6              |
-| Badge            | Gold (255,200,0), Schrift (255,255,255) auf (200,140,0)     |
-| Version-Label    | Grau                                                       |
+| Element          | Farbe(n)                                                |
+| ---------------- | ------------------------------------------------------- |
+| Hintergründ      | Verlauf 35,35,40 -> 50,50,55                            |
+| Button normal    | Verlauf 248,248,250 -> 225,225,230                      |
+| Button Hover     | Verlauf 230,245,255 -> 200,225,245                      |
+| Button gedrückt  | Verlauf 210,210,215 -> 185,185,190                      |
+| Rahmen (running) | Grün (0,180,0), 4px                                     |
+| Rahmen (normal)  | Grau (170,170,175), 1px                                 |
+| Fokus-Ring       | Gold/orange (255,200,0), 4px, gestrichelt 8/6           |
+| Badge            | Gold (255,200,0), Schrift (255,255,255) auf (200,140,0) |
+| Version-Label    | Grau                                                    |
 
 ### 7.6 Border-Implementierung
 
 `RoundedShadowBorder` (Custom `AbstractBorder`):
+
 - Abgerundete Ecken (ARC = 14)
 - Schatten (3px, schwarz mit alpha=35)
 - Konfigurierbare Linenfarbe und -starke

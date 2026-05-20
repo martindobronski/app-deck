@@ -15,6 +15,33 @@ public class ConfigLoader {
 
     private static final Gson gson = new GsonBuilder().setPrettyPrinting().create();
 
+    public static class ConfigData {
+        boolean focusMode = true;
+        List<List<ButtonConfig>> pages = new ArrayList<>();
+
+        public ConfigData() {}
+
+        public ConfigData(boolean focusMode, List<List<ButtonConfig>> pages) {
+            this.focusMode = focusMode;
+            this.pages = pages;
+        }
+    }
+
+    public static ConfigData loadWithSettings(String path) throws IOException {
+        try (FileReader reader = new FileReader(path)) {
+            ConfigData data = gson.fromJson(reader, ConfigData.class);
+            if (data != null && data.pages != null && !data.pages.isEmpty()) {
+                return data;
+            }
+        } catch (Exception ignored) {}
+
+        ConfigData result = new ConfigData();
+        result.focusMode = true;
+        List<List<ButtonConfig>> pages = load(path);
+        result.pages = pages;
+        return result;
+    }
+
     public static List<List<ButtonConfig>> load(String path) throws IOException {
         try (FileReader reader = new FileReader(path)) {
             Type multiType = new TypeToken<List<List<ButtonConfig>>>() {}.getType();
@@ -37,6 +64,12 @@ public class ConfigLoader {
         List<List<ButtonConfig>> empty = new ArrayList<>();
         empty.add(new ArrayList<>());
         return empty;
+    }
+
+    public static void saveWithSettings(String path, List<List<ButtonConfig>> pages, boolean focusMode) throws IOException {
+        try (FileWriter writer = new FileWriter(path)) {
+            gson.toJson(new ConfigData(focusMode, pages), writer);
+        }
     }
 
     public static void save(String path, List<List<ButtonConfig>> pages) throws IOException {

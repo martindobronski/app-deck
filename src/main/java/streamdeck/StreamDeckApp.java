@@ -71,13 +71,14 @@ public class StreamDeckApp extends JFrame {
         t.setDaemon(true);
         return t;
     });
-    private boolean fullscreenMode = false;
+    private boolean fullscreenMode;
     private JWindow darkBg;
 
-    public StreamDeckApp(List<List<ButtonConfig>> pages, String configPath) {
+    public StreamDeckApp(List<List<ButtonConfig>> pages, String configPath, boolean focusMode) {
         this.pages = pages;
         this.configPath = configPath;
         this.logDir = new File(configPath).getParentFile();
+        this.fullscreenMode = focusMode;
 
         log("=== App Desk gestartet ===");
         setDefaultCloseOperation(EXIT_ON_CLOSE);
@@ -126,7 +127,7 @@ public class StreamDeckApp extends JFrame {
         });
         appMenu.add(checkItem);
         appMenu.addSeparator();
-        JMenuItem fullscreenItem = new JMenuItem("Vollbild-Modus umschalten");
+        JMenuItem fullscreenItem = new JMenuItem("Fokus-Modus umschalten");
         fullscreenItem.setMnemonic('V');
         fullscreenItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F, 
             Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx() | InputEvent.SHIFT_DOWN_MASK));
@@ -154,8 +155,8 @@ public class StreamDeckApp extends JFrame {
         docsItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_D, Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx()));
         docsItem.addActionListener(e -> {
             try {
-                File pdf = new File("Dokumentation.pdf");
-                if (pdf.exists()) {
+                File pdf = findHelpPdf();
+                if (pdf != null && pdf.exists()) {
                     Desktop.getDesktop().open(pdf);
                 } else {
                     JOptionPane.showMessageDialog(this,
@@ -400,6 +401,7 @@ public class StreamDeckApp extends JFrame {
         darkBg.setContentPane(darkPanel);
         Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
         darkBg.setBounds(0, 0, screenSize.width, screenSize.height);
+        if (fullscreenMode) darkBg.setVisible(true);
 
         addWindowFocusListener(new java.awt.event.WindowFocusListener() {
             @Override
@@ -728,7 +730,7 @@ public class StreamDeckApp extends JFrame {
             JMenuItem markItem = new JMenuItem("Als neu markieren");
             markItem.addActionListener(ev -> {
                 cfg.setHasNew(true);
-                try { ConfigLoader.save(configPath, pages); } catch (IOException ex) {}
+                saveConfig();
                 updateAllButtons();
             });
             popup.add(markItem);
@@ -999,7 +1001,7 @@ public class StreamDeckApp extends JFrame {
                 int emptyIdx = findEmptySlot(prevBtns);
                 if (emptyIdx >= 0) prevBtns.set(emptyIdx, sourceCfg);
                 else prevBtns.add(sourceCfg);
-                try { ConfigLoader.save(configPath, pages); } catch (IOException ex) {}
+                saveConfig();
                 if (currentPage == 0 && currentFolder != null) { leaveFolder(); return; }
                 iconCache.clear();
                 updateAllButtons();
@@ -1016,7 +1018,7 @@ public class StreamDeckApp extends JFrame {
                 int emptyIdx = findEmptySlot(nextBtns);
                 if (emptyIdx >= 0) nextBtns.set(emptyIdx, sourceCfg);
                 else nextBtns.add(sourceCfg);
-                try { ConfigLoader.save(configPath, pages); } catch (IOException ex) {}
+                saveConfig();
                 iconCache.clear();
                 updateAllButtons();
             }
@@ -1053,11 +1055,7 @@ public class StreamDeckApp extends JFrame {
         updateButton(dragSourceIndex);
         updateButton(targetGrid);
 
-        try {
-            ConfigLoader.save(configPath, pages);
-        } catch (IOException ex) {
-            JOptionPane.showMessageDialog(this, "Fehler beim Speichern: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
-        }
+        saveConfig();
     }
 
     private int findEmptySlot(List<ButtonConfig> btns) {
@@ -1077,12 +1075,16 @@ public class StreamDeckApp extends JFrame {
         return nonNull >= maxSlots;
     }
 
-    private void saveAndRefresh() {
+    private void saveConfig() {
         try {
-            ConfigLoader.save(configPath, pages);
+            ConfigLoader.saveWithSettings(configPath, pages, fullscreenMode);
         } catch (IOException ex) {
             JOptionPane.showMessageDialog(this, "Fehler beim Speichern: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
         }
+    }
+
+    private void saveAndRefresh() {
+        saveConfig();
         iconCache.clear();
         updateAllButtons();
     }
@@ -1124,6 +1126,7 @@ public class StreamDeckApp extends JFrame {
             fullscreenMode = false;
             darkBg.setVisible(false);
         }
+        saveConfig();
     }
 
     private void backupConfig() {
@@ -1185,7 +1188,7 @@ public class StreamDeckApp extends JFrame {
                     log("  neues Video gefunden / Kanal: " + cfg.getLabel());
                 }
                 cfg.setLatestVideoId(vid);
-                try { ConfigLoader.save(configPath, pages); } catch (IOException ex) {}
+                saveConfig();
                 SwingUtilities.invokeLater(this::updateAllButtons);
             }
         }
@@ -1244,7 +1247,7 @@ public class StreamDeckApp extends JFrame {
         }
         if (cfg.isHasNew()) {
             cfg.setHasNew(false);
-            try { ConfigLoader.save(configPath, pages); } catch (IOException ex) {}
+            saveConfig();
             updateAllButtons();
         }
         try {
@@ -1937,7 +1940,7 @@ public class StreamDeckApp extends JFrame {
                         }
                     } else {
                         try {
-                            ConfigLoader.save(appSupport, List.of(new java.util.ArrayList<>()));
+                            ConfigLoader.saveWithSettings(appSupport, List.of(new java.util.ArrayList<>()), true);
                         } catch (IOException e) {
                             JOptionPane.showMessageDialog(null,
                                 "Konnte keine Standard-Konfiguration anlegen:\n"
@@ -1951,17 +1954,20 @@ public class StreamDeckApp extends JFrame {
             }
         }
 
-        List<List<ButtonConfig>> pages;
+        ConfigLoader.ConfigData configData;
         try {
-            pages = ConfigLoader.load(configPath);
+            configData = ConfigLoader.loadWithSettings(configPath);
         } catch (IOException e) {
             JOptionPane.showMessageDialog(null,
                 "Fehler beim Laden von " + configPath + "\n" + e.getMessage(),
                 "Fehler", JOptionPane.ERROR_MESSAGE);
             return;
         }
+        List<List<ButtonConfig>> pages = configData.pages;
+        boolean focusMode = configData.focusMode;
         String finalConfigPath = configPath;
-        SwingUtilities.invokeLater(() -> new StreamDeckApp(pages, finalConfigPath).setVisible(true));
+        boolean ff = focusMode;
+        SwingUtilities.invokeLater(() -> new StreamDeckApp(pages, finalConfigPath, ff).setVisible(true));
     }
 
     private static String findConfigNearAppBundle() {
@@ -1978,6 +1984,57 @@ public class StreamDeckApp extends JFrame {
                 dir = dir.getParentFile();
             }
         } catch (Exception e) {}
+        return null;
+    }
+
+    private static File findHelpPdf() {
+        try { File f = new File("Dokumentation.pdf"); if (f.exists()) return f; } catch (Exception ignored) {}
+        try {
+            String appPath = System.getProperty("jpackage.app-path");
+            if (appPath != null) {
+                File dir = new File(appPath).getParentFile();
+                for (int i = 0; i < 5 && dir != null; i++) {
+                    File f = new File(dir, "Dokumentation.pdf");
+                    if (f.exists()) return f;
+                    dir = dir.getParentFile();
+                }
+            }
+        } catch (Exception ignored) {}
+        try {
+            String dirName = System.getProperty("user.dir");
+            if (dirName != null) {
+                File dir = new File(dirName);
+                for (int i = 0; i < 5 && dir != null; i++) {
+                    File f = new File(dir, "Dokumentation.pdf");
+                    if (f.exists()) return f;
+                    if ("Contents".equals(dir.getName())) {
+                        f = new File(dir, "Resources/Dokumentation.pdf");
+                        if (f.exists()) return f;
+                    }
+                    dir = dir.getParentFile();
+                }
+            }
+        } catch (Exception ignored) {}
+        try {
+            String jarPath = StreamDeckApp.class.getProtectionDomain()
+                .getCodeSource().getLocation().toURI().getPath();
+            if (jarPath != null) {
+                File dir = new File(jarPath).getParentFile();
+                for (int i = 0; i < 10 && dir != null; i++) {
+                    File f = new File(dir, "Dokumentation.pdf");
+                    if (f.exists()) return f;
+                    dir = dir.getParentFile();
+                }
+            }
+        } catch (Exception ignored) {}
+        try (InputStream is = StreamDeckApp.class.getResourceAsStream("/streamdeck/Dokumentation.pdf")) {
+            if (is != null) {
+                File tmp = File.createTempFile("AppDeck_Help_", ".pdf");
+                tmp.deleteOnExit();
+                java.nio.file.Files.copy(is, tmp.toPath(), java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+                return tmp;
+            }
+        } catch (Exception ignored) {}
         return null;
     }
 }
