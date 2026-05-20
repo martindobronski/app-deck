@@ -9,6 +9,7 @@ import javax.swing.filechooser.FileSystemView;
 import java.awt.*;
 import java.awt.datatransfer.StringSelection;
 import java.awt.event.KeyEvent;
+import java.awt.event.InputEvent;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
@@ -69,6 +70,8 @@ public class StreamDeckApp extends JFrame {
         t.setDaemon(true);
         return t;
     });
+    private boolean fullscreenMode = false;
+    private JWindow darkBg;
 
     public StreamDeckApp(List<List<ButtonConfig>> pages, String configPath) {
         this.pages = pages;
@@ -89,7 +92,7 @@ public class StreamDeckApp extends JFrame {
         JMenuItem aboutItem = new JMenuItem("Über App Desk");
         aboutItem.setMnemonic('b');
         aboutItem.addActionListener(e -> JOptionPane.showMessageDialog(this,
-            "App Desk V1.3\nEin Stream-Deck-artiger Schaltflächenstarter für macOS.\n\nErstellt am 18.05.26",
+            "App Desk V1.4\nEin Stream-Deck-artiger Schaltflächenstarter für macOS.\n\nErstellt am 20.05.26",
             "Über App Desk", JOptionPane.INFORMATION_MESSAGE));
         appMenu.add(aboutItem);
         appMenu.addSeparator();
@@ -121,6 +124,13 @@ public class StreamDeckApp extends JFrame {
             });
         });
         appMenu.add(checkItem);
+        appMenu.addSeparator();
+        JMenuItem fullscreenItem = new JMenuItem("Vollbild-Modus umschalten");
+        fullscreenItem.setMnemonic('V');
+        fullscreenItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F, 
+            Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx() | InputEvent.SHIFT_DOWN_MASK));
+        fullscreenItem.addActionListener(e -> toggleFullscreen());
+        appMenu.add(fullscreenItem);
         appMenu.addSeparator();
         JMenuItem backupItem = new JMenuItem("Konfiguration sichern");
         backupItem.setMnemonic('K');
@@ -175,11 +185,11 @@ public class StreamDeckApp extends JFrame {
                 super.paintComponent(g);
             }
         };
-        bg.setLayout(new BorderLayout());
-        bg.add(gridPanel, BorderLayout.CENTER);
+        bg.setLayout(new GridBagLayout());
+        bg.add(gridPanel, new GridBagConstraints());
         add(bg, BorderLayout.CENTER);
 
-        JLabel versionLabel = new JLabel("V1.3 vom 18.05.26", SwingConstants.CENTER);
+        JLabel versionLabel = new JLabel("V1.4 vom 20.05.26", SwingConstants.CENTER);
         versionLabel.setFont(versionLabel.getFont().deriveFont(9f));
         versionLabel.setForeground(new Color(150, 150, 150));
         versionLabel.setBackground(new Color(50, 50, 55));
@@ -369,6 +379,14 @@ public class StreamDeckApp extends JFrame {
         updateAllButtons();
         startVideoChecker();
 
+        darkBg = new JWindow();
+        darkBg.setBackground(new Color(30, 30, 35));
+        JPanel darkPanel = new JPanel();
+        darkPanel.setBackground(new Color(30, 30, 35));
+        darkBg.setContentPane(darkPanel);
+        Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+        darkBg.setBounds(0, 0, screenSize.width, screenSize.height);
+
         addWindowListener(new java.awt.event.WindowAdapter() {
             @Override
             public void windowClosing(java.awt.event.WindowEvent e) {
@@ -393,12 +411,13 @@ public class StreamDeckApp extends JFrame {
                 return false;
             }
             if (e.getID() != KeyEvent.KEY_PRESSED) return false;
-            if ((e.isMetaDown() || e.isControlDown()) && e.getKeyCode() == KeyEvent.VK_F) {
+            if ((e.isMetaDown() || e.isControlDown()) && !e.isShiftDown() && e.getKeyCode() == KeyEvent.VK_F) {
                 showSearchDialog("");
                 return true;
             }
             if (!e.isMetaDown() && !e.isControlDown() && !e.isAltDown()) {
                 if (e.getKeyCode() == KeyEvent.VK_ESCAPE && !searchDialogOpen) {
+                    if (fullscreenMode) { toggleFullscreen(); return true; }
                     if (currentFolder != null) { leaveFolder(); return true; }
                     if (currentPage > 0) { prevPage(); return true; }
                 }
@@ -1061,6 +1080,18 @@ public class StreamDeckApp extends JFrame {
     private void startVideoChecker() {
         log("YouTube-Prüfung gestartet");
         scheduler.scheduleWithFixedDelay(this::checkAllUrls, 10, CHECK_INTERVAL_MINUTES * 60L, TimeUnit.SECONDS);
+    }
+
+    private void toggleFullscreen() {
+        if (!fullscreenMode) {
+            fullscreenMode = true;
+            darkBg.setVisible(true);
+            toFront();
+            requestFocus();
+        } else {
+            fullscreenMode = false;
+            darkBg.setVisible(false);
+        }
     }
 
     private void backupConfig() {
