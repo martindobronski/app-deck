@@ -1,352 +1,435 @@
-# App Deck -- Technische Dokumentation
+# App Deck - Technische Dokumentation
 
-## Überblick
+Version 1.4 vom 20.05.2026
 
-App Deck ist eine in Java Swing entwickelte Desktop-Anwendung für macOS, die als frei konfigurierbare Schaltflächen-Leiste (à la Stream Deck) fungiert. Sie erlaubt das Öffnen von URLs, Programmen, Dateien und Ordnern sowie das Kopieren von Text in die Zwischenablage über ein Raster von 6x4 Schaltflächen pro Seite mit beliebig vielen Seiten und optionalen Unter-Ordnern.
+---
 
-## Systemvoraussetzungen
+## 1. Überblick
 
-- Java 21+
-- macOS (für .app-Icons via `sips`, App-Erkennung via `osascript` und .app-Bundle-Erstellung via `jpackage`)
+**App Deck** ist eine in Java Swing entwickelte Desktop-Anwendung fur macOS, die als frei konfigurierbare Schaltflächen-Leiste (a la Stream Deck) fungiert. Die Anwendung erlaubt das Starten von URLs, Programmen, Dateien und Ordnern sowie das Kopieren von Text in die Zwischenablage. Die Schaltflächen sind auf mehreren Seiten und in Ordnern organisiert, können per Drag & Drop verschoben und in Echtzeit überwacht werden (YouTube-Update-Prufung, laufende App-Erkennung).
 
-## Architektur
+---
 
-### Paketstruktur
+## 2. Features
+
+### 2.1 Schaltflächen-Raster
+
+- 6 Spalten x 4 Zeilen = 24 Schaltflächen pro Seite
+- Quadratische Buttons (120 x 120 Pixel) mit abgerundeten Ecken (ARC = 14)
+- Hover-Effekt: hellblauer Verlauf (230,245,255 -> 200,225,245)
+- Gedrückter Zustand: dunklerer Verlauf (210,210,215 -> 185,185,190)
+- Schriftart: fett, 12pt
+- Gold/orangener Fokus-Ring (4px, gestrichelt 8/6) bei Tastatur-Navigation
+
+### 2.2 Schaltflächen-Typen
+
+| Typ     | Beschreibung                                                           |
+|---------|----------------------------------------------------------------------|
+| URL     | Öffnet eine Webseite im Standard-Browser, inkl. Favicon-Ladung       |
+| PROGRAM | Startet ein Programm (macOS `open -a` oder direkter Pfad)            |
+| FILE    | Öffnet eine Datei oder einen Ordner mit der Standard-Anwendung        |
+| FOLDER  | Erzeugt eine Unterseite mit eigenem Raster und Navigation             |
+| COPY    | Kopiert einen beliebigen Text in die Zwischenablage                   |
+
+### 2.3 Seiten und Navigation
+
+- Mehrere Seiten über Pfeil-Buttons navigierbar
+- Linke untere Ecke: Ruckwarts-Button (Pfeil, 28pt) - sichtbar wenn Seite > 0 oder in Ordner
+- Rechte untere Ecke: Vorwarts-Button (Pfeil, 28pt) - immer sichtbar
+- ESC-Taste: Ruckwarts-Navigation zur vorherigen Seite oder Ordner-Ebene
+- Ordnernavigation: Eintauchen in Unter-Ordner mit eigener Seiten-Struktur
+
+### 2.4 Drag & Drop
+
+- Schaltflächen können per Drag & Drop neu angeordnet werden
+- Drag-Schwelle: 5 Pixel (reagiert schnell)
+- Ghost-Fenster beim Ziehen: halbtransparente Vorschau
+- Drop auf Pfeil-links: Verschieben auf vorherige Seite (mit Voll-Prufung)
+- Drop auf Pfeil-rechts: Verschieben auf nachste Seite (mit Voll-Prufung)
+- Drop auf Ordner: Verschieben in den Ordner (erste Seite)
+- Drop auf andere Schaltfläche: Tausch der Positionen
+- Hand-Cursor wahrend des Drags
+
+### 2.5 Laufende Apps erkennen
+
+- Polling alle 5 Sekunden via `osascript` und `ps -ef`
+- Grüner Rahmen (4px) um aktive Programm-Buttons
+- 12-Sekunden-Cooldown nach manuellem Beenden
+- Cooldown verfallt automatisch wenn App nicht mehr lauft
+
+### 2.6 Langdruck zum Beenden
+
+- Langdruck (>800ms) auf Programm-Button: App wird via `osascript` beendet
+- Grüner Rahmen wird sofort entfernt
+- 12-Sekunden-Sperre verhindert erneutes Erkennen der App
+- Kein Dialog, keine Bestatigung
+
+### 2.7 YouTube-Update-Prufung
+
+- Periodische Suche nach neuen Videos (Intervall: 5 Minuten)
+- Erste Prufung 10 Sekunden nach Start
+- Extrahiert `videoId` aus YouTube-HTML via Regex
+- "Neu"-Badge (gold/orange) auf Schaltflächen mit neuen Videos
+- Badge zeigt Anzahl: "neu: X"
+- Badge verfallt beim Klicken der Schaltfläche
+- Ordner aggregieren "neu"-Anzahl aller Kind-Buttons
+- Manuelle Prufung über Menupunkt (Cmd+Y)
+- YouTube-Erkennung: Checkbox aktiviert sich automatisch bei YouTube-URLs
+- Channel-Namen aus `@handle` extrahiert, `og:title` aus HTML geladen
+
+### 2.8 Icons
+
+- **URL-Buttons**: Favicons von Google `s2/favicons` (asynchron)
+- **Programm-Buttons**: Icons aus `.app`-Bundle extrahiert via `sips` (ICNS -> PNG)
+- **Datei-Buttons**: System-Icons via `ShellFolder` oder `FileSystemView`
+- `favicon.svg` aus dem Verzeichnis wird unterstutzt
+- Programmgesteuerte Icons: Globus (URL ohne Icon), Ordner (gelb/orange), Kopieren (blaue Zwischenablage)
+- Icon-Cache: `ConcurrentHashMap` (teilt sich zwischen EDT und Hintergründ-Threads)
+- Cache wird bei Aenderungen geleert (`saveAndRefresh`)
+
+### 2.9 Suchdialog
+
+- Oeffnen via Cmd+F oder Type-to-Search (druckbare Zeichen bei nicht-fokussierten Textfeldern)
+- Durchsucht alle Seiten (Root + Ordner) nach Label und Ziel
+- Ergebnisformat: "Label (S.Seite > Ordnername > S.Subseite/Slot)"
+- Navigation mit Pfeiltasten + Enter
+- Doppelklick zum Auswahlen
+- Blinkender gelber Rahmen (5 Sekunden) um gefundenen Button
+- Navigation zur richtigen Ordner-Unterseite
+
+### 2.10 Tastatur-Navigation
+
+- Pfeiltasten: Navigation zwischen den Buttons
+- Enter: Aktion auf fokussiertem Button ausfuhren
+- Cmd+F: Suchdialog öffnen
+- Cmd+Y: YouTube-Prufung manuell starten
+- Cmd+B: Konfiguration sichern (Backup)
+- Cmd+Shift+F: Fokus-Modus umschalten
+- Cmd+Q: Anwendung beenden
+- Cmd+D: Dokumentation anzeigen
+- ESC: Ruckwarts-Navigation / Fokus-Modus beenden
+
+### 2.11 Kontextmenu (Rechtsklick)
+
+- **Bearbeiten...**: Öffnet den Konfigurationsdialog
+- **Ordner anlegen**: Erzeugt einen neuen Ordner-Button
+- **Entfernen**: Löscht die Schaltfläche
+- **Als neu markieren**: Setzt das "neu"-Badge manuell
+
+### 2.12 Konfigurationsdialog
+
+- Label (Textfeld)
+- Typ (Auswahl: URL, PROGRAM, FILE, FOLDER, COPY)
+- Ziel (Textbereich mit 3 Zeilen, bei COPY 5 Zeilen mit Zeilenumbruch)
+- Browse-Button fur Dateiauswahl (mit Type-Ahead-Suche)
+- Checkbox "Auf neue Videos prufen" (nur bei YouTube-URLs)
+- Auto-Detect: Ziel wird analysiert, Typ und Label automatisch vorgeschlagen
+- Dialog: GridBagLayout, 15px Aussenrand, Buttons zentriert (OK/Abbrechen)
+- Minimale Breite 520px, zentriert auf dem Bildschirm
+
+### 2.13 Fokus-Modus
+
+- Cmd+Shift+F: Dunkler Hintergründ füllt den gesamten Bildschirm
+- Klick auf den Hintergründ leitet Fokus zuruck an App Deck
+- Menü-Aktionen (Cmd+F etc.) leiten Fokus zuruck
+- App Deck bleibt im Vordergründ bedienbar
+- ESC beendet den Fokus-Modus
+
+### 2.14 Logging
+
+- Logdatei: `appdeck.log` im Konfigurations-Verzeichnis
+- Format: `yyyy.MM.dd_HH:mm:ss Nachricht`
+- Rotation bei 5 MB (9 Dateien: `appdeck.log` bis `appdeck.9.log`)
+- Log-Level: Start, neue Videos mit Kanalname, Zusammenfassung, nachste Prufung
+- Keine HTTP-Status-, Fetch-Fehler- oder "keine Aenderung"-Logs
+
+---
+
+## 3. Architektur
+
+### 3.1 Projektstruktur
 
 ```
 src/main/java/streamdeck/
-  StreamDeckApp.java   -- Hauptklasse (GUI, Logik, Icons, Drag & Drop)
-  ButtonConfig.java    -- Datenmodell für eine Schaltfläche
-  ConfigLoader.java    -- JSON-Persistenz (Gson)
+  StreamDeckApp.java   - Hauptklasse (GUI, Logik, ~1983 Zeilen)
+  ButtonConfig.java    - Datenmodell fur eine Schaltfläche
+  ConfigLoader.java    - JSON-Persistenz (Gson)
 
-src/main/resources/streamdeck/
-  app-icon.png         -- Eingebettetes App-Icon
+res/
+  app-icon.png         - Anwendungs-Icon
+  app-icon.icns        - macOS Icon (fur .app-Bundle)
+
+icons/
+  app-icon.icns        - macOS Icon (fur jpackage)
+
+pom.xml                - Maven-Build (Gson 2.11.0, Shade-Plugin)
+
+build-app.sh           - Build-Script fur .app-Bundle (jpackage)
+start-app-desk.sh      - Start-Script mit PID-basierter Single-Instance
+raycaststartappdeskscript.sh - Raycast-Integration
 ```
 
-### Datenmodell (ButtonConfig)
-
-Jede Schaltfläche wird durch ein `ButtonConfig`-Objekt repräsentiert:
+### 3.2 Datenmodell (ButtonConfig)
 
 ```java
-public class ButtonConfig {
-    private String label;                    // Anzeigetext
-    private String type;                     // URL | PROGRAM | FOLDER | COPY | FILE
-    private String target;                   // URL, Pfad, Kommando oder Text
-    private List<List<ButtonConfig>> pages;  // nur bei FOLDER: Unterseiten
-    private boolean check;                   // YouTube-Update-Prüfung aktiv
-    private String latestVideoId;            // zuletzt gesehene Video-ID
-    private boolean hasNew;                  // Flag für "neu"-Badge
+class ButtonConfig {
+  String label;                           // Anzeigename
+  String type;                            // URL, PROGRAM, FILE, FOLDER, COPY
+  String target;                          // Ziel-URL, Pfad, Befehl, Text
+  List<List<ButtonConfig>> pages;         // Nur bei FOLDER: Unterseiten
+  boolean check;                          // YouTube-Prufung aktiv?
+  String latestVideoId;                   // Letzte gefundene Video-ID
+  boolean hasNew;                         // "Neu"-Badge aktiv?
 }
 ```
 
-### Konfigurationsformat (ConfigLoader)
-
-Die Konfiguration wird als JSON gespeichert, ein Array von Seiten (Arrays von `ButtonConfig`-Objekten):
+### 3.3 Konfigurationsformat (JSON)
 
 ```json
 [
-  [
-    { "label": "GitHub", "type": "URL", "target": "https://github.com" },
+  [  /* Seite 0 */
+    { "label": "GitHub", "type": "URL", "target": "https://github.com",
+      "check": false, "latestVideoId": null, "hasNew": false },
     { "label": "Terminal", "type": "PROGRAM", "target": "open -a Terminal" },
-    { "label": "Dokumente", "type": "FILE", "target": "file:///Users/name/Dokumente" },
+    { "label": "Dokumente", "type": "FOLDER", "target": "",
+      "pages": [ [ { "label": "Bericht", "type": "FILE", "target": "/path/to/file.pdf" } ] ] },
     { "label": "Passwort", "type": "COPY", "target": "meinPasswort123" }
   ],
-  [
-    { "label": "Projekt", "type": "FOLDER", "target": "",
-      "pages": [
-        [
-          { "label": "Build", "type": "URL", "target": "https://jenkins.example.com" },
-          { "label": "Git", "type": "URL", "target": "https://github.com/mein/projekt" }
-        ]
-      ]
-    }
+  [  /* Seite 1 */
+    ...
   ]
 ]
 ```
 
-Der `ConfigLoader` unterstützt abwärts kompatible flache JSON-Arrays (einzelnes Array für Seite 0), die automatisch in das Mehrseiten-Format überführt werden.
+Mehrseiten-Format: Array-of-Arrays. Altes flaches Format wird automatisch erkannt und migriert (13er-Gruppen).
 
-## GUI-Komponenten
+### 3.4 Konfigurations-Pfad (Fallback)
 
-### Raster
+1. Aktuelles Arbeitsverzeichnis (`config.json`)
+2. Neben dem `.app`-Bundle (Elternverzeichnis)
+3. `~/Library/Application Support/App Deck/config.json`
 
-- 6 Spalten x 4 Zeilen = 24 Plätze pro Seite
-- Konfigurierbar über Konstanten `COLS` und `ROWS`
-- Quadratische Schaltflächen mit 120x120 Pixel
-- 14px abgerundete Ecken mit Schlagschatten (Klasse `RoundedShadowBorder`)
-- Hellgrauer Gradient (248,248,250 nach 225,225,230) mit bläulichem Hover-Effekt (230,245,255 nach 200,225,240)
-- Gedrückter Zustand: dunklerer Gradient (210,210,215 nach 185,185,190)
-- Leere Schaltflächen verwenden den gleichen hellen Gradienten wie konfigurierte
-- 10px Abstand zwischen den Schaltflächen, 10px Außenabstand
-- Text: fett, 12pt, zentriert unter dem Icon
-- Hintergrund: dunkler Gradient (35,35,40 nach 50,50,55) via eigenem JPanel
+Bei Erststart: Dialog zur Auswahl einer vorhandenen oder Erstellung einer leeren Konfiguration.
 
-### Navigationsschaltflächen
+### 3.5 GUI-Aufbau
 
-Die Navigation erfolgt über zwei spezielle Schaltflächen in der unteren Zeile:
-
-- Letzter Slot (Position `COLS*ROWS-1`): immer vorwärts (Pfeil nach rechts), Tooltip "Nächste Seite"
-- Erster Slot der unteren Zeile (Position `BOTTOM_ROW_START`): rückwärts (Pfeil nach links), Tooltip "Vorherige Seite" -- nur sichtbar wenn `currentPage > 0` oder ein Ordner geöffnet ist
-
-### Versionslabel
-
-Ganz unten: "V1.0 vom 16.05.26" in 9pt, grau (150,150,150).
-
-## Funktionen im Detail
-
-### Button-Typen
-
-**URL**: Öffnet die angegebene URL im Standardbrowser (`Desktop.getDesktop().browse()`). Unterstützt `file://`-Pfade für lokale Dateien und Verzeichnisse.
-
-**PROGRAM**: Startet ein Programm. Akzeptiert:
-- `open -a AppName` -- macOS-App
-- `open "/Applications/App.app"` -- Pfad mit Leerzeichen
-- `/Pfad/zur/App.app` -- Direkter Pfad
-- Beliebige Shell-Kommandos
-
-**FILE**: Öffnet eine Datei oder einen Ordner mit der Standard-Anwendung (`Desktop.getDesktop().open()`). Die Auswahl erfolgt über einen Dateiauswahldialog mit Tastatur-Navigation.
-
-**FOLDER**: Erzeugt eine Unterseiten-Struktur. Beim Klick wird in den Ordner navigiert, der eigene Seiten mit bis zu 24 Schaltflächen pro Seite haben kann. Die Rückkehr erfolgt über die Rückwärts-Schaltfläche. Ordnertiefe ist auf eine Ebene beschränkt.
-
-**COPY**: Kopiert den Zielfeld-Text in die System-Zwischenablage und zeigt kurz "Kopiert!" auf der Schaltfläche an.
-
-### Konfigurationsdialog
-
-Der Bearbeiten-Dialog wird als eigener `JDialog` mit `JOptionPane` als Grundlage realisiert:
-
-- Alle Elemente sind linksbündig mit 15px Abstand zum linken Rand
-- Eingabefelder dehnen sich bis 15px vor den rechten Rand
-- OK und Abbrechen sind zentriert in einer Reihe unterhalb des Formulars
-- Der Dialog ist auf dem Bildschirm zentriert, Minimumbreite 520px
-- Dialogtitel: "Schaltfläche konfigurieren"
-
-**Auto-Erkennung des Typs**: Während der Eingabe im Zielfeld wird der Typ automatisch erkannt:
-- URLs (http/https) -> Typ URL, Label-Vorschlag aus Domain
-- Existierende Dateien/Ordner -> Typ FILE, Label = Dateiname
-- `file://`-Pfade -> Typ FILE
-- `open -a ...` -> Typ PROGRAM
-- Pfade endend auf `.app` -> Typ PROGRAM
-- Bei YouTube-URLs wird die Checkbox "Auf neue Videos prüfen" automatisch aktiviert und sichtbar geschaltet
-- Bei anderen URLs bleibt die Checkbox unsichtbar
-
-**Label-Vorschlag**: Bei URLs wird der Haupt-Domain-Name (ohne TLD) als Label vorgeschlagen. Bei YouTube-URLs wird der @-Handle aus dem Pfad extrahiert (z.B. `@Actuarium` -> `Actuarium`). Bei Programm-Pfaden wird der Dateiname ohne `.app` verwendet.
-
-**Browse-Button**: Öffnet einen `JFileChooser` mit Tastatur-Navigation (`KeyEventDispatcher` für Type-Ahead). Ein `browseDialogOpen`-Flag verhindert Interferenz mit der globalen Type-to-Search-Funktion.
-
-### Rechtsklick-Menü
-
-- **Bearbeiten** -- Dialog zum Ändern von Label, Typ und Ziel
-- **Ordner anlegen** -- Erzeugt einen neuen FOLDER-Button mit einer leeren Seite
-- **Entfernen** -- Löscht die Schaltfläche (null im Seiten-Array)
-
-### Laufende Apps erkennen
-
-Alle 5 Sekunden wird die Liste der laufenden Prozesse via `osascript` und `ps -ef` abgefragt. Programme mit einem laufenden Prozess erhalten einen grünen Rahmen (`ROUNDED_BORDER_RUNNING`, 4px, RGB 0,180,0). Die Erkennung gleicht sowohl den Prozessnamen als auch die Kommandozeile ab, um auch Apps mit abweichenden Namen (z.B. VS Code als 'Code') zu erfassen.
-
-### Long-Press zum Beenden
-
-Ein PROGRAM-Button muss >800ms gedrückt gehalten werden, um die App via `osascript` zu beenden. Der grüne Rahmen wird sofort entfernt, und die App erscheint für 12s nicht mehr als laufend (Kühlung, bis der OS-Beendigungsprozess abgeschlossen ist).
-
-### Drag & Drop
-
-- Drag-Schwelle: 5px (reagiert schon bei kleinen Bewegungen)
-- Ghost-Fenster (`JWindow`) zeigt das Schaltflächen-Bild während des Ziehens
-- Hand-Cursor während des Ziehens
-- Ablegen auf eine andere Schaltfläche: Tausch der Positionen
-- Ablegen auf eine FOLDER-Schaltfläche: Verschieben in den ersten leeren Slot des Ordners
-- Ablegen auf die Rückwärts-Schaltfläche (Pfeil links): Verschieben zur vorherigen Seite (oder aus Ordner heraus)
-- Ablegen auf die Vorwärts-Schaltfläche (Pfeil rechts): Verschieben zur nächsten Seite (mit `pageIsFull`-Prüfung)
-- Long-Press-Timer wird bei Drag-Start abgebrochen
-- Bei seitenübergreifendem Drag&Drop wird `ConfigLoader.save()` + `iconCache.clear()` + `updateAllButtons()` aufgerufen
-
-### Icon-Ladung
-
-Icons werden asynchron (Hintergrund-Thread) geladen, um die EDT nicht zu blockieren:
-
-1. **Cache** (`ConcurrentHashMap`) -- `type + "::" + target` als Key
-2. **PROGRAM**: ShellFolder (Reflection) -> FileSystemView -> `sips` für .icns (temp PNG mit Pfad-Hash) -> lokale `favicon.svg` -> System-Icon-Fallback
-3. **FILE**: Gleicher Weg wie PROGRAM (`resolveProgramIcon`)
-4. **URL**: Google Favicon-Service (`https://www.google.com/s2/favicons?domain=...`) -> lokale `favicon.svg` -> Globe-Fallback
-5. **Globe-Fallback** (48x48): Blauer Kreis mit Breiten-/Längengrad-Linien (Java2D)
-6. **FOLDER** (48x48): Gelb-oranger Ordner mit Lasche (Java2D)
-7. **COPY** (48x48): Blaue Zwischenablage mit Textzeilen (Java2D)
-8. Stale-Callback-Guard: Vor dem Setzen des Icons wird geprüft, ob die Schaltfläche noch die gleiche Konfiguration hat
-
-### Programmatische Icons (Java2D)
-
-Drei Icons werden ohne externe Dateien zur Laufzeit generiert:
-
-- **Globe**: Blauer Kreis (70,140,220) mit weißen Hilfslinien für Äquator und Nullmeridian
-- **Ordner**: Gelb-oranger Gradient (245,215,85 bis 210,175,50) mit braunem Tab und Umriss
-- **Kopie**: Hellblaue Briefklammer oben, dunkelblaues Rechteck (100,120,200) mit weißen Textzeilen
-
-### YouTube-Update-Prüfung
-
-Die Anwendung kann periodisch YouTube-Kanalseiten auf neue Videos prüfen:
-
-- Aktivierung pro Button über die Checkbox "Auf neue Videos prüfen" (nur sichtbar bei YouTube-URLs)
-- Prüffrequenz: konfigurierbar über `CHECK_INTERVAL_MINUTES` (Standard: 5 Minuten)
-- Erster Check erfolgt 10 Sekunden nach dem Start
-- Erkennung via Regex `"videoId":"[A-Za-z0-9_-]{6,}"` aus dem HTML der Kanal-Seite
-- Bei einem neuen Video erscheint ein rotes "neu"-Badge auf dem Button
-- Badge wird beim Klick auf den Button zurückgesetzt (`hasNew = false`)
-- Bei Ordnern: Der Ordner-Button zeigt ebenfalls ein "neu"-Badge, wenn einer seiner Unter-Buttons ein neues Video hat (dynamisch beim Rendern geprüft)
-- Bei erstmaliger Prüfung wird die Video-ID nur gespeichert ohne "neu" zu markieren (Baseline)
-- Manueller Trigger über Menüpunkt "Auf neue YouTube-Videos prüfen" mit Warte-Cursor und 3s-Ergebnisdialog
-- `latestVideoId` wird nur im JSON gespeichert, wenn sie durch einen Check gesetzt wurde
-- Stale/ungültige IDs (kürzer als 6 Zeichen) werden ignoriert
-
-### Suchdialog (Cmd+F)
-
-Der Suchdialog durchsucht alle Seiten (inklusive Ordner-Unterseiten) nach Label und Ziel:
-
-- Öffnung über Cmd+F (Strg+F) oder Menüpunkt "Suche"
-- Type-to-Search: Bei Tastatureingabe auf nicht-fokussierten `JTextComponent`-Bereichen wird der Suchdialog automatisch geöffnet und das Zeichen vorausgefüllt
-- Gefilterte Ergebnisse in einer Liste mit Seitenangabe (z.B. "Actuarium (S.1 > Ordner > S.1)")
-- Navigation in der Ergebnisliste mit Pfeiltasten (oben/unten)
-- Enter wählt das markierte Ergebnis aus
-- Doppelklick wählt das Ergebnis aus
-- Escape schließt den Dialog
-- `searchDialogOpen`-Flag verhindert rekursive KeyEventDispatcher-Aufrufe
-
-**Navigation zum Ergebnis**: Nach Auswahl eines Ergebnisses wird zur entsprechenden Seite und Position navigiert. Der gefundene Button erhält für 5 Sekunden einen blinkenden gelb-orangen Rahmen (400ms Intervall). Der Button wird fokussiert.
-
-### Tastatur-Navigation
-
-- **Pfeiltasten**: Navigation zwischen den Raster-Buttons (oben/unten/links/rechts)
-- **Enter**: Führt die Aktion des fokussierten Buttons aus (`doClick()`)
-- **ESC**: Rückwärts-Navigation (`prevPage()` oder `leaveFolder()`)
-- **Fokus-Ring**: Gold-oranger gestrichelter Rahmen (4px, 8/6 Dash-Muster) wird in `paint()` nach `super.paint(g)` gezeichnet, so dass er oberhalb des grünen Running-Rahmens sichtbar ist
-
-### Menüleiste
-
-- **App Desk**: Über-App-Desk, Trennlinie, "Suche mit Strg + F", Trennlinie, "Auf neue YouTube-Videos prüfen", Trennlinie, "App Desk beenden"
-- **Hilfe**: "Dokumentation anzeigen" (öffnet `Dokumentation.pdf` via `Desktop.open()`)
-- Hilfe ist rechtsbündig, App Desk linksbündig
-
-### macOS .app-Bundle
-
-Das Skript `build-app.sh` erzeugt ein `.app`-Bundle via `jpackage`:
-
-```bash
-./build-app.sh
-open "App Deck.app"
+```
+JFrame (App Deck)
+  JMenuBar
+  JPanel ("bg", darkGradient = 35,35,40 -> 50,50,55)
+   GridBagLayout (center)
+    JPanel ("gridPanel", 6 Spalten x 4 Zeilen, FlowLayout/CENTER, 6px Abstand)
+      JButton[24] (jeweils 120x120, Gradient 248,248,250 -> 225,225,230)
+  BorderLayout.SOUTH
+    JLabel (Version "1.4 - 20.05.26" in grau)
 ```
 
-Eigenschaften:
-- Bundle-ID: `com.dobronski.appdeck`
-- Custom `.icns`-Icon (farbiges Raster auf dunklem Hintergrund)
-- Dock-Name via `System.setProperty("apple.awt.application.name", "App Deck")`
-- Dock-Icon via `Taskbar.setTaskbarIcon()`
+`bg`-Panel übersetzt mit `GridBagLayout` (anchor=CENTER, fill=NONE), dadurch bleibt `gridPanel` immer zentriert.
 
-### Logging
+### 3.6 Buttons-Indizes
 
-Die Anwendung schreibt Logs in `appdeck.log` im gleichen Verzeichnis wie `config.json`:
+- BOTTOM_ROW_START = (ROWS - 1) * COLS = 18
+- Letzter Slot (Index 23) = immer Vorwarts-Button
+- Vorletzter Slot (Index 18) = Ruckwarts-Button wenn Seite > 0 oder in Ordner
+- `gridToPageIndex(int)`: Konvertiert Raster-Index zu Seiten-Index (berucksichtigt Navigations-Buttons)
+- `pageToGridIndex(int)`: Umgekehrte Konvertierung
 
-- Format: `yyyy.MM.dd_HH:mm:ss` + Meldung
-- Rotation bei 5 MB (appdeck.log -> appdeck.1.log -> ... -> appdeck.9.log)
-- Log-Einträge: Start/Ende, YouTube-Prüfung (Start, pro Button, Ergebnis, nächster Check), Fehler
+### 3.7 Fokus-Modus
 
-## Build und Ausführung
+- Ein separates `JWindow` (fullscreen, unowned, `setFocusableWindowState(false)`)
+- MouseListener auf dunklem Panel ruft `toFront()` bei Klick
+- `AWTEventListener` reagiert auf `ActionEvent` von `JMenuItem` und ruft `toFront()` mit 50ms Verzogerung
+- `WindowFocusListener` als Sicherheitsnetz
 
-### JAR (einfach)
+### 3.8 Icon-Ladung
+
+- Icons werden asynchron in einem Hintergründ-Thread geladen
+- `iconCache` (ConcurrentHashMap) verhindert mehrfaches Laden
+- Favicons: `https://www.google.com/s2/favicons?domain=DOMAIN&sz=64`
+- macOS `.app`-Icons: `sips -s format png ICNS --out PNG`
+- `favicon.svg`: `sips --resampleWidth WIDTH SVG --out PNG`
+- `ShellFolder` via Reflection (Fallback: `FileSystemView.getSystemIcon`)
+- Fallback beim Fehlschlagen: programmierter Globus
+
+### 3.9 Laufende Apps erkennen
+
+- `osascript` (Apple Events): Liefert alle Prozess-Namen
+- `ps -ef`: Fallback fur Shell-Befehle
+- Polling alle 5 Sekunden via `javax.swing.Timer`
+- Extraktion des App-Namens aus dem Ziel-String (verschiedene Formate: `open -a NAME`, `open "PFAD"`, `.app`-Datei)
+- Vergleich: `String.toLowerCase().contains(appKey)`
+
+### 3.10 YouTube-Check
+
+- `ScheduledExecutorService` mit `scheduleWithFixedDelay`
+- Erstverzogerung: 10s, Intervall: 5 Minuten
+- HTTP-GET auf YouTube-URL, Regex nach `"videoId":"..."` suchen
+- Vergleich mit gespeicherter `latestVideoId`
+- Bei neuem Video: `hasNew = true`, Log-Eintrag mit Kanalname
+- Badge wird beim Klicken der Schaltfläche zuruckgesetzt
+- Badge wird beim Start der Anwendung aus dem JSON gelesen
+
+---
+
+## 4. Voraussetzungen
+
+- **Java 21+** (JDK 21+ fur Build und Ausfuhrung)
+- **macOS** (fur native Funktionen: `osascript`, `sips`, `open`, `jpackage`)
+- **Maven** (fur Build)
+- **Pandoc + XeLaTeX** (fur PDF-Dokumentation)
+- **IntelliJ IDEA** (empfohlen fur Entwicklung)
+
+---
+
+## 5. Installation
+
+### 5.1 Aus dem Quellcode bauen
+
+```bash
+git clone git@github.com:martindobronski/app-deck.git
+cd app-deck
+./build-app.sh
+```
+
+Das Script fuhrt `mvn package` und `jpackage` aus und erzeugt `App Deck.app`.
+
+### 5.2 Manuell starten
 
 ```bash
 mvn package -q
-java -jar target/streamdeck-1.0-SNAPSHOT.jar [config.json]
+java -jar target/streamdeck-1.4.jar [config.json]
 ```
 
-### macOS .app Bundle
+### 5.3 .app-Bundle starten
 
 ```bash
-./build-app.sh
 open "App Deck.app"
 ```
 
-### Konfigurationspfad
-
-1. Kommandozeilen-Argument, falls angegeben
-2. `config.json` im aktuellen Verzeichnis
-3. `~/Library/Application Support/App Deck/config.json` (wird automatisch angelegt)
-
-## Abhängigkeiten
-
-- **Gson 2.11.0** -- JSON-Serialisierung (`com.google.code.gson:gson`)
-- Keine weiteren externen Bibliotheken (reines Java Swing + macOS-native Tools)
-
-## Wichtige Konstanten
-
-| Konstante | Wert | Beschreibung |
-|---|---|---|
-| `COLS` | 6 | Spalten im Raster |
-| `ROWS` | 4 | Zeilen im Raster |
-| `BUTTON_SIZE` | 120 | Seitenlänge der quadratischen Buttons (px) |
-| `BOTTOM_ROW_START` | `(ROWS-1)*COLS` | Index der ersten Schaltfläche in der unteren Zeile |
-| `ICON_SIZE` | 48 | Zielgröße der Icons (px) |
-| `DRAG_THRESHOLD` | 5 | Pixel für Drag-Erkennung |
-| `ARC` | 14 | Rundungsradius der Buttons |
-| `SHADOW` | 3 | Schlagschatten-Versatz |
-| `CHECK_INTERVAL_MINUTES` | 5 | Minuten zwischen YouTube-Prüfungen |
-
-## Index-Berechnungen
-
-Die Navigationselemente belegen Slots in der unteren Zeile:
-
-- Letzter Slot (`COLS*ROWS-1`): immer Vorwärts (Pfeil rechts)
-- Erster Slot der unteren Zeile (`BOTTOM_ROW_START`): Rückwärts (Pfeil links) wenn Seite > 0 oder Ordner geöffnet
-
-`gridToPageIndex()` und `pageToGridIndex()` bilden zwischen Gitter-Position und Seiten-Index ab, wobei Navigations-Slots übersprungen werden. `findEmptySlot()` und `pageIsFull()` sind Hilfsmethoden für Drag & Drop und Ordner-Befüllung.
-
-## Running-App-Erkennung
-
-```java
-isAppRunning(appKey) = runningApps.contains(appKey)
-                     || runningCmdLines.contains(appKey)
-```
-
-- `runningApps`: via `osascript` ermittelte Prozessnamen
-- `runningCmdLines`: via `ps -ef` ermittelte Kommandozeilen
-- `killedApps`: via Long-Press beendete Apps (12s Kühlung)
-
-## Long-Press-Timing
-
-| Phase | Dauer | Aktion |
-|---|---|---|
-| Gedrückt halten | >800ms | `osascript` quit, Rahmen entfernen, App in killedApps |
-| Kühlung | 12s | App erscheint nicht als laufend, damit der Beendigungsprozess abgeschlossen werden kann |
-
-## Beispielkonfiguration
-
-Eine vollständige Konfiguration mit zwei Seiten und einem Ordner:
-
-```json
-[
-  [
-    { "label": "GitHub", "type": "URL", "target": "https://github.com" },
-    { "label": "Terminal", "type": "PROGRAM", "target": "open -a Terminal" },
-    { "label": "Projekte", "type": "FOLDER", "target": "", "pages": [
-      [
-        { "label": "Build", "type": "URL", "target": "https://jenkins.example.com" },
-        { "label": "Wiki", "type": "URL", "target": "https://wiki.example.com" }
-      ]
-    ]}
-  ],
-  [
-    { "label": "Notizen", "type": "PROGRAM", "target": "open -a Notes" },
-    { "label": "Codeschnipsel", "type": "COPY", "target": "System.out.println(\"Hello World\");" },
-    { "label": "Actuarium", "type": "URL", "target": "https://www.youtube.com/@Actuarium/videos", "check": true }
-  ]
-]
-```
-
-## Icon-Generierung
-
-Das App-Icon (farbiges Raster auf dunklem Hintergrund) wird durch `icons/make-icon.sh` generiert, das ein temporäres Java-Programm kompiliert und ausführt, um ein 1024x1024 PNG zu erzeugen, das dann via `sips` und `iconutil` in ein `.icns`-Format gebracht wird.
+### 5.4 Single-Instance-Script
 
 ```bash
-./icons/make-icon.sh
+./start-app-desk.sh
 ```
 
-Erzeugt:
-- `icons/app-icon.png` (1024x1024)
-- `icons/app-icon.icns` (macOS Icon-Format)
+Startet nur eine Instanz (PID-Datei in `/tmp/app-desk.pid`).
+
+---
+
+## 6. Bedienung
+
+### 6.1 Schaltflächen konfigurieren
+
+Rechtsklick -> "Bearbeiten..." oder auf leere Schaltfläche klicken.
+Der Konfigurationsdialog erlaubt:
+- Label: Anzeigename
+- Typ: URL, PROGRAM, FILE, FOLDER, COPY
+- Ziel: URL, Pfad, Befehl, Text
+- "Auf neue Videos prufen": Nur fur YouTube-URLs
+
+Der Typ und Label werden automatisch erkannt:
+- `http://...` -> URL (Label aus Domain)
+- `open -a ...` -> PROGRAM (Label aus App-Name)
+- `... .app` -> PROGRAM (Label aus Dateiname)
+- `file://...` -> FILE (Label aus Pfad)
+
+### 6.2 Schaltflächen anordnen
+
+Drag & Drop: Button an die gewunschte Position ziehen.
+- Auf Pfeil-links/rechts: Seite wechseln
+- Auf Ordner: in Ordner verschieben
+
+### 6.3 Programme beenden
+
+Button langer als 800ms gedrückt halten. Die App wird via `osascript` beendet.
+
+### 6.4 Suchen
+
+Cmd+F oder einfach tippen: Durchsucht alle Seiten und Ordner nach Label/Ziel.
+
+### 6.5 Konfiguration sichern
+
+Menupunkte:
+- `App Desk -> Konfiguration sichern` (Cmd+B): Kopiert `config.json` nach `bak/YYYYMMDD_HHmmss_config.json`
+
+---
+
+## 7. Technische Details
+
+### 7.1 Build (build-app.sh)
+
+```bash
+mvn package -q                                  # Erzeugt target/streamdeck-1.4.jar
+rm -rf dist/                                    # Bereinigen
+jpackage \                                      # .app-Bundle erzeugen
+  --type app-image \
+  --name "App Deck" \
+  --app-version "1.4" \
+  --icon icons/app-icon.icns \
+  --input target/ \
+  --main-jar streamdeck-1.4.jar \
+  --main-class streamdeck.StreamDeckApp \
+  --mac-package-identifier com.dobronski.appdeck \
+  --dest dist/
+```
+
+### 7.2 Abhängigkeiten
+
+| Abhängigkeit | Version | Verwendung                    |
+|-------------|---------|-------------------------------|
+| Gson        | 2.11.0  | JSON-Persistenz               |
+| Maven Shade | 3.6.0   | Fat-JAR (alle Dependencies)   |
+
+### 7.3 macOS-spezifische Funktionen
+
+- `osascript`: Apple Events fur App-Liste und App-Beenden
+- `sips`: Konvertiert ICNS -> PNG und SVG -> PNG
+- `open`: Startet .app-Bundles und öffnet URLs/Dateien
+- `jpackage`: Erzeugt das .app-Bundle
+- `ShellFolder`: Holt System-Icons (via Reflection)
+
+### 7.4 Thread-Sicherheit
+
+- Icon-Cache: `ConcurrentHashMap` (EDT und Hintergründ-Thread)
+- YouTube-Check: `ScheduledExecutorService` (einzelner Daemon-Thread)
+- GUI-Updates: `SwingUtilities.invokeLater`
+- Drag & Drop: EDT (MouseListener)
+- Running Apps: EDT (javax.swing.Timer)
+
+### 7.5 Farben und Design
+
+| Element          | Farbe(n)                                                    |
+|------------------|-------------------------------------------------------------|
+| Hintergründ      | Verlauf 35,35,40 -> 50,50,55                                |
+| Button normal    | Verlauf 248,248,250 -> 225,225,230                          |
+| Button Hover     | Verlauf 230,245,255 -> 200,225,245                          |
+| Button gedrückt  | Verlauf 210,210,215 -> 185,185,190                          |
+| Rahmen (running) | Grün (0,180,0), 4px                                         |
+| Rahmen (normal)  | Grau (170,170,175), 1px                                     |
+| Fokus-Ring       | Gold/orange (255,200,0), 4px, gestrichelt 8/6              |
+| Badge            | Gold (255,200,0), Schrift (255,255,255) auf (200,140,0)     |
+| Version-Label    | Grau                                                       |
+
+### 7.6 Border-Implementierung
+
+`RoundedShadowBorder` (Custom `AbstractBorder`):
+- Abgerundete Ecken (ARC = 14)
+- Schatten (3px, schwarz mit alpha=35)
+- Konfigurierbare Linenfarbe und -starke
+- `getBorderInsets`: 4,4,7,7 (plus Schatten)
+
+---
+
+## 8. Bekannte Einschrankungen
+
+- macOS-only: `osascript`, `sips`, `open`, `jpackage`, `ShellFolder`
+- Kein nativer Windows-/Linux-Support (in Planung als Single Code-Base)
+- YouTube-Check kann fehlschlagen wenn YouTube Consent-Redirects ausliefert
+- Favicons nur von Google `s2/favicons` (keine direkte Seitenextraktion)
+- ShellFolder nutzt Reflection (kann auf JDK 9+ scheitern)
+
+---
+
+## 9. Lizenz
+
+Proprietar. Alle Rechte vorbehalten.
