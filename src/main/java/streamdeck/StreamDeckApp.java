@@ -150,26 +150,18 @@ public class StreamDeckApp extends JFrame {
         menuBar.add(Box.createHorizontalGlue());
         JMenu helpMenu = new JMenu("Hilfe");
         helpMenu.setMnemonic('H');
-        JMenuItem docsItem = new JMenuItem("Dokumentation anzeigen");
-        docsItem.setMnemonic('D');
-        docsItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_D, Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx()));
-        docsItem.addActionListener(e -> {
-            try {
-                File pdf = findHelpPdf();
-                if (pdf != null && pdf.exists()) {
-                    Desktop.getDesktop().open(pdf);
-                } else {
-                    JOptionPane.showMessageDialog(this,
-                        "Dokumentation.pdf nicht gefunden.",
-                        "Hilfe", JOptionPane.WARNING_MESSAGE);
-                }
-            } catch (Exception ex) {
-                JOptionPane.showMessageDialog(this,
-                    "Fehler beim Offnen: " + ex.getMessage(),
-                    "Fehler", JOptionPane.ERROR_MESSAGE);
-            }
-        });
+
+        JMenuItem manualItem = new JMenuItem("Bedienungsanleitung anzeigen");
+        manualItem.setMnemonic('B');
+        manualItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_D, Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx()));
+        manualItem.addActionListener(e -> openPdf("Bedienungsanleitung.pdf"));
+        helpMenu.add(manualItem);
+
+        JMenuItem docsItem = new JMenuItem("Technische Dokumentation anzeigen");
+        docsItem.setMnemonic('T');
+        docsItem.addActionListener(e -> openPdf("Dokumentation.pdf"));
         helpMenu.add(docsItem);
+
         menuBar.add(helpMenu);
         menuBar.add(Box.createHorizontalStrut(6));
         setJMenuBar(menuBar);
@@ -1987,14 +1979,31 @@ public class StreamDeckApp extends JFrame {
         return null;
     }
 
-    private static File findHelpPdf() {
-        try { File f = new File("Dokumentation.pdf"); if (f.exists()) return f; } catch (Exception ignored) {}
+    private void openPdf(String filename) {
+        try {
+            File pdf = findPdf(filename);
+            if (pdf != null && pdf.exists()) {
+                Desktop.getDesktop().open(pdf);
+            } else {
+                JOptionPane.showMessageDialog(this,
+                    filename + " nicht gefunden.",
+                    "Hilfe", JOptionPane.WARNING_MESSAGE);
+            }
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(this,
+                "Fehler beim Offnen: " + ex.getMessage(),
+                "Fehler", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    private static File findPdf(String filename) {
+        try { File f = new File(filename); if (f.exists()) return f; } catch (Exception ignored) {}
         try {
             String appPath = System.getProperty("jpackage.app-path");
             if (appPath != null) {
                 File dir = new File(appPath).getParentFile();
                 for (int i = 0; i < 5 && dir != null; i++) {
-                    File f = new File(dir, "Dokumentation.pdf");
+                    File f = new File(dir, filename);
                     if (f.exists()) return f;
                     dir = dir.getParentFile();
                 }
@@ -2005,10 +2014,10 @@ public class StreamDeckApp extends JFrame {
             if (dirName != null) {
                 File dir = new File(dirName);
                 for (int i = 0; i < 5 && dir != null; i++) {
-                    File f = new File(dir, "Dokumentation.pdf");
+                    File f = new File(dir, filename);
                     if (f.exists()) return f;
                     if ("Contents".equals(dir.getName())) {
-                        f = new File(dir, "Resources/Dokumentation.pdf");
+                        f = new File(dir, "Resources/" + filename);
                         if (f.exists()) return f;
                     }
                     dir = dir.getParentFile();
@@ -2021,15 +2030,16 @@ public class StreamDeckApp extends JFrame {
             if (jarPath != null) {
                 File dir = new File(jarPath).getParentFile();
                 for (int i = 0; i < 10 && dir != null; i++) {
-                    File f = new File(dir, "Dokumentation.pdf");
+                    File f = new File(dir, filename);
                     if (f.exists()) return f;
                     dir = dir.getParentFile();
                 }
             }
         } catch (Exception ignored) {}
-        try (InputStream is = StreamDeckApp.class.getResourceAsStream("/streamdeck/Dokumentation.pdf")) {
+        try (InputStream is = StreamDeckApp.class.getResourceAsStream("/streamdeck/" + filename)) {
             if (is != null) {
-                File tmp = File.createTempFile("AppDeck_Help_", ".pdf");
+                String prefix = filename.replaceAll("\\.pdf$", "");
+                File tmp = File.createTempFile("AppDeck_" + prefix + "_", ".pdf");
                 tmp.deleteOnExit();
                 java.nio.file.Files.copy(is, tmp.toPath(), java.nio.file.StandardCopyOption.REPLACE_EXISTING);
                 return tmp;

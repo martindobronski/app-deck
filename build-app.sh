@@ -15,7 +15,7 @@ mvn package -q
 
 echo "=== Creating .app bundle ==="
 rm -rf dist/
-cp Dokumentation.pdf target/
+cp Dokumentation.pdf Bedienungsanleitung.pdf target/
 jpackage \
   --type app-image \
   --name "$APP_NAME" \
