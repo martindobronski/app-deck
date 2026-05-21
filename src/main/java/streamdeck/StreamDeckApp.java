@@ -224,13 +224,13 @@ public class StreamDeckApp extends JFrame {
                 public void paint(Graphics g) {
                     super.paint(g);
                     if (isFocusOwner()) drawFocusRing(g, getWidth(), getHeight());
-                    if (Boolean.TRUE.equals(getClientProperty("hasNew"))) {
+                    Object countObj = getClientProperty("newCount");
+                    int cnt = countObj instanceof Number ? ((Number) countObj).intValue() : 0;
+                    if (cnt > 0) {
                         Graphics2D g2 = (Graphics2D) g.create();
                         g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
                         Font orig = g2.getFont();
                         g2.setFont(orig.deriveFont(Font.BOLD, 11f));
-                        Object countObj = getClientProperty("newCount");
-                        int cnt = countObj instanceof Number ? ((Number) countObj).intValue() : 1;
                         String badge = "neu: " + cnt;
                         FontMetrics fm = g2.getFontMetrics();
                         int bw = fm.stringWidth(badge) + 10;
@@ -582,14 +582,12 @@ public class StreamDeckApp extends JFrame {
                 int folderNewCount = 0;
                 for (List<ButtonConfig> page : cfg.getPages()) {
                     for (ButtonConfig child : page) {
-                        if (child != null && child.isHasNew()) folderNewCount++;
+                        if (child != null) folderNewCount += child.getNewCount();
                     }
                 }
-                btn.putClientProperty("hasNew", folderNewCount > 0);
                 btn.putClientProperty("newCount", folderNewCount);
             } else {
-                btn.putClientProperty("hasNew", cfg.isHasNew());
-                btn.putClientProperty("newCount", cfg.isHasNew() ? 1 : 0);
+                btn.putClientProperty("newCount", cfg.getNewCount());
             }
         } else {
             btn.setText("");
@@ -599,7 +597,7 @@ public class StreamDeckApp extends JFrame {
             btn.setBorder(null);
             btn.putClientProperty("empty", true);
             btn.putClientProperty("hovered", false);
-            btn.putClientProperty("hasNew", false);
+            btn.putClientProperty("newCount", 0);
         }
     }
 
@@ -1175,30 +1173,67 @@ public class StreamDeckApp extends JFrame {
         return total;
     }
 
+    private boolean isYouTubeChannelUrl(String url) {
+        if (url == null || (!url.contains("youtube.com") && !url.contains("youtu.be"))) return true;
+        try {
+            String path = new java.net.URI(url).getPath();
+            if (path == null) return false;
+            return path.startsWith("/@") || path.startsWith("/channel/") || path.startsWith("/c/") || path.startsWith("/user/");
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
     private int checkPageUrls(List<ButtonConfig> page) {
         int found = 0;
         for (int i = 0; i < page.size(); i++) {
             ButtonConfig cfg = page.get(i);
             if (cfg == null || cfg.getTarget() == null || !cfg.isCheck()) continue;
-            String vid = fetchLatestVideoId(cfg.getTarget());
-            String stored = cfg.getLatestVideoId();
-            if (stored != null && !stored.matches("[A-Za-z0-9_-]{6,}")) stored = null;
-            if (vid != null && !vid.equals(stored)) {
-                if (stored != null) {
-                    cfg.setHasNew(true);
-                    found++;
-                    log("  neues Video gefunden / Kanal: " + cfg.getLabel());
+            if (!isYouTubeChannelUrl(cfg.getTarget())) continue;
+            List<String> fetched = fetchVideoIds(cfg.getTarget());
+            if (fetched == null || fetched.isEmpty()) continue;
+            List<String> known = cfg.getKnownVideoIds();
+            if (known == null) {
+                known = new java.util.ArrayList<>();
+                cfg.setKnownVideoIds(known);
+                String legacyId = cfg.getLatestVideoId();
+                if (legacyId != null && legacyId.matches("[A-Za-z0-9_-]{6,}")) {
+                    known.addAll(fetched);
+                    configDirty = true;
+                    saveConfig();
+                    continue;
                 }
-                cfg.setLatestVideoId(vid);
+            }
+            if (known.isEmpty()) {
+                known.addAll(fetched);
+                cfg.setLatestVideoId(fetched.get(0));
                 configDirty = true;
                 saveConfig();
+                continue;
+            }
+            int newVideos = 0;
+            java.util.List<String> newIds = new java.util.ArrayList<>();
+            for (String id : fetched) {
+                if (!known.contains(id)) {
+                    newVideos++;
+                    newIds.add(id);
+                }
+            }
+            if (newVideos > 0) {
+                cfg.setNewCount(cfg.getNewCount() + newVideos);
+                found += newVideos;
+                known.addAll(newIds);
+                cfg.setLatestVideoId(fetched.get(0));
+                configDirty = true;
+                saveConfig();
+                log("  " + newVideos + " neue Videos gefunden / Kanal: " + cfg.getLabel());
                 SwingUtilities.invokeLater(this::updateAllButtons);
             }
         }
         return found;
     }
 
-    private String fetchLatestVideoId(String url) {
+    private List<String> fetchVideoIds(String url) {
         try {
             java.net.HttpURLConnection conn = (java.net.HttpURLConnection) new java.net.URL(url).openConnection();
             conn.setConnectTimeout(10000);
@@ -1211,12 +1246,56 @@ public class StreamDeckApp extends JFrame {
             int n;
             while ((n = r.read(buf)) > 0) html.append(buf, 0, n);
             r.close();
+            String raw = html.toString();
+            int dataIdx = raw.indexOf("ytInitialData");
+            if (dataIdx >= 0) {
+                int brace = raw.indexOf('{', dataIdx);
+                if (brace >= 0) {
+                    int depth = 0;
+                    int end = brace;
+                    for (int i = brace; i < raw.length(); i++) {
+                        char c = raw.charAt(i);
+                        if (c == '{') depth++;
+                        else if (c == '}') { depth--; if (depth == 0) { end = i + 1; break; } }
+                    }
+                    if (end > brace) {
+                        try {
+                            String json = raw.substring(brace, end);
+                            com.google.gson.JsonObject root = com.google.gson.JsonParser.parseString(json).getAsJsonObject();
+                            java.util.LinkedHashSet<String> ids = new java.util.LinkedHashSet<>();
+                            collectVideoRendererIds(root, ids);
+                            if (!ids.isEmpty()) return new java.util.ArrayList<>(ids);
+                        } catch (Exception ignored) {}
+                    }
+                }
+            }
             java.util.regex.Pattern p = java.util.regex.Pattern.compile("\"videoId\":\"([A-Za-z0-9_-]{6,})\"");
-            java.util.regex.Matcher m = p.matcher(html);
-            if (m.find()) return m.group(1);
-            return null;
+            java.util.regex.Matcher m = p.matcher(raw);
+            java.util.LinkedHashSet<String> ids = new java.util.LinkedHashSet<>();
+            while (m.find() && ids.size() < 15) ids.add(m.group(1));
+            return ids.isEmpty() ? null : new java.util.ArrayList<>(ids);
         } catch (Exception e) {
             return null;
+        }
+    }
+
+    private void collectVideoRendererIds(com.google.gson.JsonElement el, java.util.LinkedHashSet<String> out) {
+        if (el.isJsonObject()) {
+            com.google.gson.JsonObject obj = el.getAsJsonObject();
+            if (obj.has("videoRenderer")) {
+                com.google.gson.JsonObject vr = obj.getAsJsonObject("videoRenderer");
+                if (vr != null && vr.has("videoId")) {
+                    String vid = vr.get("videoId").getAsString();
+                    if (vid != null && vid.matches("[A-Za-z0-9_-]{6,}")) out.add(vid);
+                }
+            }
+            for (java.util.Map.Entry<String, com.google.gson.JsonElement> e : obj.entrySet()) {
+                collectVideoRendererIds(e.getValue(), out);
+            }
+        } else if (el.isJsonArray()) {
+            for (com.google.gson.JsonElement e : el.getAsJsonArray()) {
+                collectVideoRendererIds(e, out);
+            }
         }
     }
 
@@ -1262,7 +1341,8 @@ public class StreamDeckApp extends JFrame {
                         String path = t.startsWith("file:///") ? t.substring(7) : t.substring(6);
                         Desktop.getDesktop().open(new File(path));
                     } else {
-                        Desktop.getDesktop().browse(new URI(t));
+                        if (t.contains("@")) t = t.replace("@", "%40");
+                        Runtime.getRuntime().exec(new String[]{"/usr/bin/open", t});
                     }
                 }
                 case "PROGRAM" -> Runtime.getRuntime().exec(parseCommand(cfg.getTarget()));
@@ -1643,7 +1723,7 @@ public class StreamDeckApp extends JFrame {
 
     private String suggestLabel(String url) {
         try {
-            URI uri = new URI(url);
+            URI uri = new URI(url.contains("@") ? url.replace("@", "%40") : url);
             String host = uri.getHost();
             String path = uri.getPath();
             if (host != null && path != null && (host.contains("youtube.com") || host.contains("youtu.be"))) {

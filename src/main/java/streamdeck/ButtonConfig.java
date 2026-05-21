@@ -10,7 +10,8 @@ public class ButtonConfig {
     private List<List<ButtonConfig>> pages;
     private boolean check;
     private String latestVideoId;
-    private boolean hasNew;
+    private List<String> knownVideoIds;
+    private int newCount;
 
     public ButtonConfig() {}
 
@@ -26,7 +27,16 @@ public class ButtonConfig {
     public List<List<ButtonConfig>> getPages() { return pages; }
     public boolean isCheck() { return check; }
     public String getLatestVideoId() { return latestVideoId; }
-    public boolean isHasNew() { return hasNew; }
+    public List<String> getKnownVideoIds() { return knownVideoIds; }
+    public boolean isHasNew() { return newCount > 0; }
+
+    public void setHasNew(boolean v) {
+        if (v) {
+            newCount++;
+        } else {
+            newCount = 0;
+        }
+    }
 
     public void setLabel(String label) { this.label = label; }
     public void setType(String type) { this.type = type; }
@@ -34,5 +44,7 @@ public class ButtonConfig {
     public void setPages(List<List<ButtonConfig>> pages) { this.pages = pages; }
     public void setCheck(boolean check) { this.check = check; }
     public void setLatestVideoId(String latestVideoId) { this.latestVideoId = latestVideoId; }
-    public void setHasNew(boolean hasNew) { this.hasNew = hasNew; }
+    public void setKnownVideoIds(List<String> knownVideoIds) { this.knownVideoIds = knownVideoIds; }
+    public int getNewCount() { return newCount; }
+    public void setNewCount(int newCount) { this.newCount = newCount; }
 }
