@@ -74,6 +74,7 @@ public class StreamDeckApp extends JFrame {
     private boolean fullscreenMode;
     private boolean configDirty;
     private volatile boolean skipAutoDetect;
+    private long escPressTime;
     private JWindow darkBg;
 
     public StreamDeckApp(List<List<ButtonConfig>> pages, String configPath, boolean focusMode) {
@@ -97,7 +98,7 @@ public class StreamDeckApp extends JFrame {
         JMenuItem aboutItem = new JMenuItem("Über App Desk");
         aboutItem.setMnemonic('b');
         aboutItem.addActionListener(e -> JOptionPane.showMessageDialog(this,
-            "App Desk V1.4\nEin Stream-Deck-artiger Schaltflächenstarter für macOS.\n\nErstellt am 20.05.26",
+            "App Desk V1.5\nEin Stream-Deck-artiger Schaltflächenstarter für macOS.\n\nErstellt am 21.05.26",
             "Über App Desk", JOptionPane.INFORMATION_MESSAGE));
         appMenu.add(aboutItem);
         appMenu.addSeparator();
@@ -186,7 +187,7 @@ public class StreamDeckApp extends JFrame {
         bg.add(gridPanel, new GridBagConstraints());
         add(bg, BorderLayout.CENTER);
 
-        JLabel versionLabel = new JLabel("V1.4 vom 20.05.26", SwingConstants.CENTER);
+        JLabel versionLabel = new JLabel("V1.5 vom 21.05.26", SwingConstants.CENTER);
         versionLabel.setFont(versionLabel.getFont().deriveFont(9f));
         versionLabel.setForeground(new Color(150, 150, 150));
         versionLabel.setBackground(new Color(50, 50, 55));
@@ -440,6 +441,23 @@ public class StreamDeckApp extends JFrame {
                 }
                 return false;
             }
+            if (e.getID() == KeyEvent.KEY_RELEASED && e.getKeyCode() == KeyEvent.VK_ESCAPE && !searchDialogOpen
+                && !e.isMetaDown() && !e.isControlDown() && !e.isAltDown()) {
+                long held = System.currentTimeMillis() - escPressTime;
+                escPressTime = 0;
+                if (held >= 800) {
+                    if (currentFolder != null) {
+                        currentFolder = null;
+                        currentPage = savedRootPage;
+                    }
+                    currentPage = 0;
+                    updateAllButtons();
+                } else {
+                    if (currentPage > 0) { prevPage(); return true; }
+                    if (currentFolder != null) { leaveFolder(); return true; }
+                }
+                return true;
+            }
             if (e.getID() != KeyEvent.KEY_PRESSED) return false;
             if ((e.isMetaDown() || e.isControlDown()) && !e.isShiftDown() && e.getKeyCode() == KeyEvent.VK_F) {
                 showSearchDialog("");
@@ -447,8 +465,8 @@ public class StreamDeckApp extends JFrame {
             }
             if (!e.isMetaDown() && !e.isControlDown() && !e.isAltDown()) {
                 if (e.getKeyCode() == KeyEvent.VK_ESCAPE && !searchDialogOpen) {
-                    if (currentFolder != null) { leaveFolder(); return true; }
-                    if (currentPage > 0) { prevPage(); return true; }
+                    if (escPressTime == 0) escPressTime = System.currentTimeMillis();
+                    return true;
                 }
                 Component focusOwner = KeyboardFocusManager.getCurrentKeyboardFocusManager().getFocusOwner();
                 int cur = -1;

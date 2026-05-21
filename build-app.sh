@@ -19,10 +19,9 @@ cp Dokumentation.pdf Bedienungsanleitung.pdf target/
 jpackage \
   --type app-image \
   --name "$APP_NAME" \
-  --app-version "1.4" \
-  --icon "$ICON" \
+  --app-version "1.5" \
   --input target/ \
-  --main-jar streamdeck-1.4.jar \
+  --main-jar streamdeck-1.5.jar \
   --main-class streamdeck.StreamDeckApp \
   --mac-package-identifier "$BUNDLE_ID" \
   --dest dist/

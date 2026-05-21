@@ -16,16 +16,16 @@ A Java Swing desktop application for macOS that serves as a freely configurable 
 - **Running app detection** - green border for active programs
 - **Long-press to quit** - hold >800ms to terminate an app
 - **App icons** - auto-extracted from .app bundles (macOS)
-- **JSON configuration** - auto-saved on edit
+- **JSON configuration** - auto-saved on edit and auto-saved on shutdown (configDirty flag)
 - **Dark design** - dark gradient background with bright buttons
-- **YouTube update check** - periodic new video detection with badge
+- **YouTube update check** - periodic new video detection with accumulating badge, @-handle resolution, ytInitialData parsing
 - **Search dialog** - Cmd+F to search all pages, arrow key navigation, blinking highlight
 - **Type-to-search** - keyboard input in non-focused areas opens search
 - **Arrow key navigation** between buttons, Enter to execute
 - **Focus ring** - gold/orange dashed border on focused button
-- **ESC back-navigation** to previous page or folder
+- **ESC back-navigation** short press: page back / leave folder; long press (≥800ms): first page, leave folder
 - **Menu bar** - App Desk (About, YouTube check, Save config, Toggle focus mode, Quit) and Help (Documentation)
-- **Focus mode** - Cmd+Shift+F to cover screen with dark background
+- **Focus mode** - Cmd+Shift+F to cover screen with dark background (JWindow, persisted in config)
 - **Backup config** - timestamped copies in `bak/` directory
 - **Context menu** (right-click) - Edit, Create folder, Remove, Mark as new
 - **Logging** - `appdeck.log` with timestamps, rotation at 5 MB
@@ -48,7 +48,7 @@ Or manually:
 
 ```bash
 mvn package -q
-java -jar target/streamdeck-1.4.jar [config.json]
+java -jar target/streamdeck-1.5.jar [config.json]
 ```
 
 ## Configuration
@@ -89,7 +89,7 @@ Full technical documentation (German):
 
 ## Project Status
 
-Version 1.4 - May 20, 2026
+Version 1.5 - May 21, 2026
 
 - macOS-only (planned: cross-platform single codebase)
 - Built with Java 21 + Swing + Gson 2.11.0

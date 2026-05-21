@@ -1,6 +1,6 @@
 # App Deck - Technische Dokumentation
 
-Version 1.4 vom 20.05.2026
+Version 1.5 vom 21.05.2026
 
 ---
 
@@ -36,7 +36,8 @@ Version 1.4 vom 20.05.2026
 - Mehrere Seiten über Pfeil-Buttons navigierbar
 - Linke untere Ecke: Ruckwarts-Button (Pfeil, 28pt) - sichtbar wenn Seite > 0 oder in Ordner
 - Rechte untere Ecke: Vorwarts-Button (Pfeil, 28pt) - immer sichtbar
-- ESC-Taste: Ruckwarts-Navigation zur vorherigen Seite oder Ordner-Ebene
+- ESC (kurz, <800ms): Seite zurück (prevPage), dann Ordner verlassen (leaveFolder) - in dieser Reihenfolge
+- ESC (lang, ≥800ms): Zur ersten Seite springen und Ordner verlassen (per System.currentTimeMillis()-Messung, kein Timer)
 - Ordnernavigation: Eintauchen in Unter-Ordner mit eigener Seiten-Struktur
 
 ### 2.4 Drag & Drop
@@ -69,13 +70,18 @@ Version 1.4 vom 20.05.2026
 - Periodische Suche nach neuen Videos (Intervall: 5 Minuten)
 - Erste Prufung 10 Sekunden nach Start
 - Extrahiert `videoId` aus YouTube-HTML via Regex
+- Extrahiert `videoId` aus YouTube-ytInitialData-JSON via Gson (rekursive `videoRenderer`-Extraktion), Fallback: Regex auf HTML (erste 15 unique IDs)
+- Alle gesehenen Video-IDs werden in `knownVideoIds` (List<String>) gespeichert
 - "Neu"-Badge (gold/orange) auf Schaltflächen mit neuen Videos
-- Badge zeigt Anzahl: "neu: X"
-- Badge verfallt beim Klicken der Schaltfläche
+- Badge zeigt kumulierte Anzahl: "neu: X" (wird pro Prüfvorgang erhöht)
+- Badge verfallt beim Klicken der Schaltfläche (setzt newCount auf 0)
 - Ordner aggregieren "neu"-Anzahl aller Kind-Buttons
 - Manuelle Prufung über Menupunkt (Cmd+Y)
 - YouTube-Erkennung: Checkbox aktiviert sich automatisch bei YouTube-URLs
 - Channel-Namen aus `@handle` extrahiert, `og:title` aus HTML geladen
+- `isYouTubeChannelUrl()` filtert: nur URLs mit Pfad `/@`, `/channel/`, `/c/`, `/user/` werden geprüft
+- `@`-Handle wird automatisch via YouTube-Suche in Channel-ID aufgelöst (`resolveYouTubeHandle()`)
+- URL-Ausführung mit `Runtime.exec("/usr/bin/open")` statt `Desktop.browse()` um `%40`-Encoding zu vermeiden
 
 ### 2.8 Icons
 
@@ -106,8 +112,9 @@ Version 1.4 vom 20.05.2026
 - Cmd+B: Konfiguration sichern (Backup)
 - Cmd+Shift+F: Fokus-Modus umschalten
 - Cmd+Q: Anwendung beenden
-- Cmd+D: Dokumentation anzeigen
-- ESC: Ruckwarts-Navigation / Fokus-Modus beenden
+- Cmd+D: Bedienungsanleitung anzeigen
+- ESC (kurz): Seite zurück, dann Ordner verlassen
+- ESC (lang ≥800ms): Erste Seite, Ordner verlassen
 
 ### 2.11 Kontextmenu (Rechtsklick)
 
@@ -133,7 +140,7 @@ Version 1.4 vom 20.05.2026
 - Klick auf den Hintergründ leitet Fokus zuruck an App Deck
 - Menü-Aktionen (Cmd+F etc.) leiten Fokus zuruck
 - App Deck bleibt im Vordergründ bedienbar
-- ESC beendet den Fokus-Modus
+- ESC beendet NICHT den Fokus-Modus (ESC ist reine Rückwärtsnavigation)
 
 ### 2.14 Logging
 
@@ -151,7 +158,7 @@ Version 1.4 vom 20.05.2026
 
 ```
 src/main/java/streamdeck/
-  StreamDeckApp.java   - Hauptklasse (GUI, Logik, ~1983 Zeilen)
+  StreamDeckApp.java   - Hauptklasse (GUI, Logik, ~2252 Zeilen, Stand V1.5)
   ButtonConfig.java    - Datenmodell fur eine Schaltfläche
   ConfigLoader.java    - JSON-Persistenz (Gson)
 
@@ -178,18 +185,31 @@ class ButtonConfig {
   String target;                          // Ziel-URL, Pfad, Befehl, Text
   List<List<ButtonConfig>> pages;         // Nur bei FOLDER: Unterseiten
   boolean check;                          // YouTube-Prufung aktiv?
-  String latestVideoId;                   // Letzte gefundene Video-ID
-  boolean hasNew;                         // "Neu"-Badge aktiv?
+  List<String> knownVideoIds;             // Alle bisher gesehenen Video-IDs
+  int newCount;                           // Kumulierter "Neu"-Zähler
 }
 ```
 
-### 3.3 Konfigurationsformat (JSON)
+### 3.3 ConfigData-Wrapper
+
+```java
+class ConfigData {
+  boolean focusMode;                    // Fokus-Modus aktiv?
+  List<List<List<ButtonConfig>>> pages; // Array-of-Array-of-Array (Seiten)
+}
+```
+
+Die Konfiguration wird im JSON-Format als Objekt mit `focusMode` und `pages` gespeichert. Alte Array-of-Arrays-Formate (ohne Wrapper) werden automatisch erkannt und migriert.
+
+Ein `configDirty`-Flag (volatile boolean) wird bei jeder Mutation gesetzt und im Shutdown-Hook abgefragt: Nur wenn `configDirty == true` wird `saveConfig()` aufgerufen. Dies vermeidet unnötige Schreibzugriffe beim Beenden, wenn keine Änderungen vorgenommen wurden.
+
+### 3.4 Konfigurationsformat (JSON)
 
 ```json
 [
   [  /* Seite 0 */
     { "label": "GitHub", "type": "URL", "target": "https://github.com",
-      "check": false, "latestVideoId": null, "hasNew": false },
+      "check": false, "knownVideoIds": [], "newCount": 0 },
     { "label": "Terminal", "type": "PROGRAM", "target": "open -a Terminal" },
     { "label": "Dokumente", "type": "FOLDER", "target": "",
       "pages": [ [ { "label": "Bericht", "type": "FILE", "target": "/path/to/file.pdf" } ] ] },
@@ -203,7 +223,7 @@ class ButtonConfig {
 
 Mehrseiten-Format: Array-of-Arrays. Altes flaches Format wird automatisch erkannt und migriert (13er-Gruppen).
 
-### 3.4 Konfigurations-Pfad (Fallback)
+### 3.5 Konfigurations-Pfad (Fallback)
 
 1. Aktuelles Arbeitsverzeichnis (`config.json`)
 2. Neben dem `.app`-Bundle (Elternverzeichnis)
@@ -211,7 +231,7 @@ Mehrseiten-Format: Array-of-Arrays. Altes flaches Format wird automatisch erkann
 
 Bei Erststart: Dialog zur Auswahl einer vorhandenen oder Erstellung einer leeren Konfiguration.
 
-### 3.5 GUI-Aufbau
+### 3.6 GUI-Aufbau
 
 ```
 JFrame (App Deck)
@@ -221,12 +241,12 @@ JFrame (App Deck)
     JPanel ("gridPanel", 6 Spalten x 4 Zeilen, FlowLayout/CENTER, 6px Abstand)
       JButton[24] (jeweils 120x120, Gradient 248,248,250 -> 225,225,230)
   BorderLayout.SOUTH
-    JLabel (Version "1.4 - 20.05.26" in grau)
+    JLabel (Version "V1.5 vom 21.05.26" in grau)
 ```
 
 `bg`-Panel übersetzt mit `GridBagLayout` (anchor=CENTER, fill=NONE), dadurch bleibt `gridPanel` immer zentriert.
 
-### 3.6 Buttons-Indizes
+### 3.7 Buttons-Indizes
 
 - BOTTOM_ROW_START = (ROWS - 1) * COLS = 18
 - Letzter Slot (Index 23) = immer Vorwarts-Button
@@ -234,14 +254,14 @@ JFrame (App Deck)
 - `gridToPageIndex(int)`: Konvertiert Raster-Index zu Seiten-Index (berucksichtigt Navigations-Buttons)
 - `pageToGridIndex(int)`: Umgekehrte Konvertierung
 
-### 3.7 Fokus-Modus
+### 3.8 Fokus-Modus
 
 - Ein separates `JWindow` (fullscreen, unowned, `setFocusableWindowState(false)`)
 - MouseListener auf dunklem Panel ruft `toFront()` bei Klick
 - `AWTEventListener` reagiert auf `ActionEvent` von `JMenuItem` und ruft `toFront()` mit 50ms Verzogerung
 - `WindowFocusListener` als Sicherheitsnetz
 
-### 3.8 Icon-Ladung
+### 3.9 Icon-Ladung
 
 - Icons werden asynchron in einem Hintergründ-Thread geladen
 - `iconCache` (ConcurrentHashMap) verhindert mehrfaches Laden
@@ -251,7 +271,7 @@ JFrame (App Deck)
 - `ShellFolder` via Reflection (Fallback: `FileSystemView.getSystemIcon`)
 - Fallback beim Fehlschlagen: programmierter Globus
 
-### 3.9 Laufende Apps erkennen
+### 3.10 Laufende Apps erkennen
 
 - `osascript` (Apple Events): Liefert alle Prozess-Namen
 - `ps -ef`: Fallback fur Shell-Befehle
@@ -259,15 +279,36 @@ JFrame (App Deck)
 - Extraktion des App-Namens aus dem Ziel-String (verschiedene Formate: `open -a NAME`, `open "PFAD"`, `.app`-Datei)
 - Vergleich: `String.toLowerCase().contains(appKey)`
 
-### 3.10 YouTube-Check
+### 3.11 YouTube-Check
 
 - `ScheduledExecutorService` mit `scheduleWithFixedDelay`
 - Erstverzogerung: 10s, Intervall: 5 Minuten
-- HTTP-GET auf YouTube-URL, Regex nach `"videoId":"..."` suchen
-- Vergleich mit gespeicherter `latestVideoId`
-- Bei neuem Video: `hasNew = true`, Log-Eintrag mit Kanalname
-- Badge wird beim Klicken der Schaltfläche zuruckgesetzt
-- Badge wird beim Start der Anwendung aus dem JSON gelesen
+- HTTP-GET auf YouTube-URL, Parsen von `ytInitialData` JSON via Gson (rekursive `videoRenderer`-Extraktion)
+- Fallback: Regex nach `"videoId":"..."` (erste 15 unique IDs)
+- Vergleich mit gespeicherter `knownVideoIds`-Liste
+- Bei neuen Videos: `newCount += Differenz`, Log-Eintrag mit Kanalname
+- `knownVideoIds` wird nach jedem Check aktualisiert (akkumulierend)
+- Badge (`newCount`) wird beim Klicken der Schaltfläche auf 0 gesetzt
+- `isYouTubeChannelUrl()` filtert: nur Kanal-URLs werden geprüft (`/@`, `/channel/`, `/c/`, `/user/`)
+- `@`-Handle wird automatisch in Channel-ID aufgelöst via `resolveYouTubeHandle()` (YouTube-Suche)
+
+---
+
+## 3.12 configDirty-Flag
+
+```java
+volatile boolean configDirty = false;
+```
+
+Wird bei jeder Änderung auf `true` gesetzt:
+- Ordner anlegen / Entfernen / Als neu markieren
+- Drag & Drop (alle Varianten)
+- Edit-Dialog (OK)
+- YouTube-Check bei neuen Videos
+- Button-Klick setzt `newCount` zurück
+
+Klarstellung in `saveConfig()` -> `configDirty = false`.
+Shutdown-Hook: `if (configDirty) saveConfig();`
 
 ---
 
@@ -297,7 +338,7 @@ Das Script fuhrt `mvn package` und `jpackage` aus und erzeugt `App Deck.app`.
 
 ```bash
 mvn package -q
-java -jar target/streamdeck-1.4.jar [config.json]
+java -jar target/streamdeck-1.5.jar [config.json]
 ```
 
 ### 5.3 .app-Bundle starten
@@ -363,15 +404,15 @@ Menupunkte:
 ### 7.1 Build (build-app.sh)
 
 ```bash
-mvn package -q                                  # Erzeugt target/streamdeck-1.4.jar
+mvn package -q                                  # Erzeugt target/streamdeck-1.5.jar
 rm -rf dist/                                    # Bereinigen
 jpackage \                                      # .app-Bundle erzeugen
   --type app-image \
   --name "App Deck" \
-  --app-version "1.4" \
+  --app-version "1.5" \
   --icon icons/app-icon.icns \
   --input target/ \
-  --main-jar streamdeck-1.4.jar \
+  --main-jar streamdeck-1.5.jar \
   --main-class streamdeck.StreamDeckApp \
   --mac-package-identifier com.dobronski.appdeck \
   --dest dist/

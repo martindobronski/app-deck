@@ -1,6 +1,6 @@
 # Bedienungsanleitung App Deck
 
-Version 1.4 vom 20.05.2026
+Version 1.5 vom 21.05.2026
 
 ---
 
@@ -14,6 +14,7 @@ Die Anwendung richtet sich an alle, die häufig die gleichen Programme, Webseite
 
 - **Zeitersparnis**: Häufig genutzte Aktionen mit einem Klick erreichbar
 - **Übersichtlichkeit**: Beliebig viele Seiten und Ordner zur Organisation
+- **Auto-Save**: Änderungen werden beim Beenden automatisch gesichert
 - **Flexibilität**: Fünf verschiedene Schaltflächen-Typen für unterschiedliche Aufgaben
 - **Automatisierung**: YouTube-Update-Prüfung informiert über neue Videos
 - **Individualisierung**: Frei konfigurierbare Buttons mit eigenen Icons
@@ -38,7 +39,7 @@ Die Anwendung richtet sich an alle, die häufig die gleichen Programme, Webseite
 ### 2.3 Starten über die Kommandozeile
 
 ```bash
-java -jar streamdeck-1.4.jar [pfad/zur/config.json]
+java -jar streamdeck-1.5.jar [pfad/zur/config.json]
 ```
 
 ### 2.4 Konfigurationsdatei
@@ -75,14 +76,16 @@ Das Hauptfenster zeigt ein **6 x 4 Raster** aus 24 quadratischen Schaltflächen 
 
 **Hilfe (Alt + H):**
 
-- Dokumentation anzeigen (Cmd + D): Öffnet dieses Handbuch
+- Bedienungsanleitung anzeigen (Cmd + D): Öffnet dieses Handbuch
+- Technische Dokumentation anzeigen: Öffnet die technische Dokumentation
 
 ### 3.3 Navigation
 
 - **Pfeiltasten (links/rechts)**: Zwischen Seiten blättern
 - **Pfeiltasten (oben/unten/links/rechts)**: Zwischen Schaltflächen navigieren
 - **Eingabetaste**: Die fokussierte Schaltfläche ausführen
-- **ESC**: Eine Seite zurück, Ordner verlassen oder Fokus-Modus beenden
+- **ESC (kurz, <800ms)**: Eine Seite zurück; innerhalb eines Ordners zuerst eine Seite zurück, dann Ordner verlassen
+- **ESC (lang, ≥800ms)**: Zur ersten Seite springen und Ordner verlassen
 
 ---
 
@@ -198,7 +201,7 @@ App Deck erkennt den Typ automatisch beim Eintippen des Ziels:
 | `open -a Terminal`                | PROGRAM       | "Terminal"             |
 | `open "/Applications/Safari.app"` | PROGRAM       | "Safari"               |
 | `Pfad/zur/Datei.pdf` (existiert)  | FILE          | "Datei.pdf"            |
-| Beliebiger Text                  | COPY          | (manuell eingeben)     |
+| Beliebiger Text                   | COPY          | (manuell eingeben)     |
 
 ---
 
@@ -231,7 +234,7 @@ Halte einen Programm-Button länger als 800ms gedruckt. Das Programm wird dann b
 Der Fokus-Modus verdunkelt den gesamten Bildschirm hinter dem App-Deck-Fenster. So kannst du dich ganz auf die Schaltflächen konzentrieren, ohne von anderen Fenstern oder dem Desktop-Hintergrund abgelenkt zu werden.
 
 - **Aktivieren/Deaktivieren**: Cmd + Shift + F oder Menüpunkt "App Desk > Fokus-Modus umschalten"
-- **Beenden**: Nochmals Cmd + Shift + F oder ESC
+- **Beenden**: Nochmals Cmd + Shift + F
 - Die Einstellung wird automatisch in der Konfiguration gespeichert und beim nächsten Start wiederhergestellt
 - Klicks auf den dunklen Hintergrund haben keine Auswirkung
 
@@ -261,20 +264,24 @@ Die Suche durchsucht alle Seiten und Ordner nach dem Label oder Ziel einer Schal
 
 ### 9.1 Automatische Prüfung
 
-App Deck prüft regelmäßig (alle 5 Minuten), ob auf den konfigurierten YouTube-Kanalen neue Videos erschienen sind. Die erste Prüfung erfolgt 10 Sekunden nach dem Start.
+App Deck prüft regelmäßig (alle 5 Minuten), ob auf den konfigurierten YouTube-Kanälen neue Videos erschienen sind. Die erste Prüfung erfolgt 10 Sekunden nach dem Start. Die Prüfung verwendet `@`-Handle-URLs (z.B. `https://www.youtube.com/@Kanalname`) und löst diese automatisch in Channel-IDs auf. Normale YouTube-URLs, die keinem Kanal entsprechen (z.B. einzelne Video-URLs), werden übersprungen.
 
-### 9.2 Das "Neu"-Badge
+### 9.2 @-Handle-Auflösung
 
-Wenn ein neues Video gefunden wird, erscheint auf der Schaltfläche ein goldenes Badge mit der Anzahl neuer Videos, z.B. "neu: 3".
+Wenn du eine YouTube-URL mit `@`-Handle einfügst (z.B. `https://www.youtube.com/@Kanalname`), wird diese automatisch in die entsprechende Channel-ID aufgelöst. Der Kanalname aus dem Handle wird als Label vorgeschlagen.
+
+### 9.3 Das "Neu"-Badge
+
+App Deck prüft regelmäßig (alle 5 Minuten), ob auf den konfigurierten YouTube-Kanälen neue Videos erschienen sind. Die ID aller bereits gesehenen Videos wird gespeichert. Bei jedem Prüfvorgang werden neu hinzugekommene Video-IDs gezählt und der Zähler wird erhöht. So erscheint auf der Schaltfläche ein goldenes Badge mit der kumulierten Anzahl neuer Videos, z.B. "neu: 3".
 
 - Bei Ordnern wird die Anzahl aller neuen Videos zusammengezählt
 - Das Badge verschwindet, sobald du die Schaltfläche klickst
 
-### 9.3 Manuelle Prüfung
+### 9.4 Manuelle Prüfung
 
 Cmd + Y oder Menüpunkt "App Desk > Auf neue YouTube-Videos prüfen"
 
-### 9.4 Aktivierung
+### 9.5 Aktivierung
 
 Die YouTube-Prüfung muss für jede Schaltfläche einzeln aktiviert werden:
 
@@ -288,17 +295,18 @@ Die YouTube-Prüfung muss für jede Schaltfläche einzeln aktiviert werden:
 
 ## 10. Tastaturkürzel (Übersicht)
 
-| Kurzel          | Aktion                                             |
-| --------------- | -------------------------------------------------- |
-| Cmd + F         | Suchdialog öffnen                                  |
-| Cmd + Y         | YouTube-Prüfung starten                            |
-| Cmd + B         | Konfiguration sichern (Backup)                     |
-| Cmd + Shift + F | Fokus-Modus umschalten                             |
-| Cmd + D         | Dokumentation anzeigen                             |
-| Cmd + Q         | Anwendung beenden                                  |
-| Pfeiltasten     | Zwischen Buttons navigieren                        |
-| Eingabetaste    | Fokussierten Button ausführen                      |
-| ESC             | Rückwärts / Ordner verlassen / Fokus-Modus beenden |
+| Kurzel          | Aktion                          |
+| --------------- | ------------------------------- |
+| Cmd + F         | Suchdialog öffnen               |
+| Cmd + Y         | YouTube-Prüfung starten         |
+| Cmd + B         | Konfiguration sichern (Backup)  |
+| Cmd + Shift + F | Fokus-Modus umschalten          |
+| Cmd + D         | Bedienungsanleitung anzeigen    |
+| Cmd + Q         | Anwendung beenden               |
+| Pfeiltasten     | Zwischen Buttons navigieren     |
+| Eingabetaste    | Fokussierten Button ausführen   |
+| ESC (kurz)      | Seite zurück / Ordner verlassen |
+| ESC (lang)      | Erste Seite / Ordner verlassen  |
 
 ---
 
@@ -386,10 +394,13 @@ Es werden keine personenbezogenen Daten an Dritte übermittelt. Die Verbindung z
 
 ## 14. Versionshistorie
 
-| Version | Datum      | Änderungen                                         |
-| ------- | ---------- | -------------------------------------------------- |
-| 1.4     | 20.05.2026 | Fokus-Modus, JWindow-Fix, focusMode in config.json |
-| 1.3     | 18.05.2026 | Config-Auswahldialog bei Erststart                 |
-| 1.2     | 17.05.2026 | Drag & Drop, Ordner, COPY-Typ, YouTube-Prüfung     |
-| 1.1     | 17.05.2026 | Icon-Ladung, laufende Apps, Suchdialog             |
-| 1.0     | 16.05.2026 | Erste Version mit 5x3 Raster, URL/PROGRAM/FOLDER   |
+| Version | Datum      | Änderungen                                             |
+| ------- | ---------- | ------------------------------------------------------ |
+| 1.5     | 21.05.2026 | @-Handle-Auflösung, newCount kumulierend,              |
+|         |            | ytInitialData-Parsing, ESC-Rückwärtsnavigation,        |
+|         |            | configDirty-Flag                                       |
+| 1.4     | 20.05.2026 | Fokus-Modus, JWindow-Fix, focusMode in config.json     |
+| 1.3     | 18.05.2026 | Config-Auswahldialog bei Erststart                     |
+| 1.2     | 17.05.2026 | Drag & Drop, Ordner, COPY-Typ, YouTube-Prüfung         |
+| 1.1     | 17.05.2026 | Icon-Ladung, laufende Apps, Suchdialog                 |
+| 1.0     | 16.05.2026 | Erste Version mit 5x3 Raster, URL/PROGRAM/FOLDER       |
