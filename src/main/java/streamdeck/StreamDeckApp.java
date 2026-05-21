@@ -73,6 +73,7 @@ public class StreamDeckApp extends JFrame {
     });
     private boolean fullscreenMode;
     private boolean configDirty;
+    private volatile boolean skipAutoDetect;
     private JWindow darkBg;
 
     public StreamDeckApp(List<List<ButtonConfig>> pages, String configPath, boolean focusMode) {
@@ -751,6 +752,7 @@ public class StreamDeckApp extends JFrame {
 
         targetArea.getDocument().addDocumentListener(new javax.swing.event.DocumentListener() {
             private void check() {
+                if (skipAutoDetect) { skipAutoDetect = false; return; }
                 String text = targetArea.getText().trim();
                 if (text.isEmpty()) return;
                 if ("FOLDER".equals(typeBox.getSelectedItem()) || "COPY".equals(typeBox.getSelectedItem())) return;
@@ -773,16 +775,33 @@ public class StreamDeckApp extends JFrame {
                     if (isYouTubeUrl(text)) {
                         String urlSnapshot = text;
                         String labelSnapshot = labelField.getText();
-                        new Thread(() -> {
-                            String title = fetchYouTubeTitle(text);
-                            if (title != null) {
+                        if (text.contains("youtube.com/@")) {
+                            new Thread(() -> {
+                                String channelUrl = resolveYouTubeHandle(urlSnapshot);
+                                String title = channelUrl != null ? fetchYouTubeTitle(channelUrl) : null;
                                 SwingUtilities.invokeLater(() -> {
-                                    if (targetArea.getText().trim().equals(urlSnapshot)
-                                        && labelField.getText().equals(labelSnapshot))
+                                    if (!targetArea.getText().trim().equals(urlSnapshot)) return;
+                                    if (channelUrl != null) {
+                                        skipAutoDetect = true;
+                                        targetArea.setText(channelUrl);
+                                    }
+                                    if (title != null && labelField.getText().equals(labelSnapshot)) {
                                         labelField.setText(title);
+                                    }
                                 });
-                            }
-                        }).start();
+                            }).start();
+                        } else {
+                            new Thread(() -> {
+                                String title = fetchYouTubeTitle(urlSnapshot);
+                                if (title != null) {
+                                    SwingUtilities.invokeLater(() -> {
+                                        if (targetArea.getText().trim().equals(urlSnapshot)
+                                            && labelField.getText().equals(labelSnapshot))
+                                            labelField.setText(title);
+                                    });
+                                }
+                            }).start();
+                        }
                     }
                 } else if (text.startsWith("file://")) {
                     String plainPath = text.substring(text.startsWith("file:///") ? 7 : 6);
@@ -928,7 +947,11 @@ public class StreamDeckApp extends JFrame {
 
         JOptionPane pane = new JOptionPane(outerPanel, JOptionPane.PLAIN_MESSAGE, JOptionPane.DEFAULT_OPTION, null, new Object[0], null);
         JDialog dialog = pane.createDialog(this, "Schaltfläche konfigurieren");
+        boolean cbWasVisible = videoCheckBox.isVisible();
+        videoCheckBox.setVisible("URL".equals(cfg.getType()));
+        dialog.pack();
         dialog.setSize(Math.max(dialog.getWidth(), 520), dialog.getHeight());
+        videoCheckBox.setVisible(cbWasVisible);
         dialog.setLocationRelativeTo(null);
         okBtn.addActionListener(e -> { pane.setValue(JOptionPane.OK_OPTION); dialog.dispose(); });
         cancelBtn.addActionListener(e -> { pane.setValue(JOptionPane.CANCEL_OPTION); dialog.dispose(); });
@@ -937,8 +960,13 @@ public class StreamDeckApp extends JFrame {
         int result = selectedValue instanceof Integer ? (Integer) selectedValue : JOptionPane.CLOSED_OPTION;
 
         if (result == JOptionPane.OK_OPTION) {
+            String target = targetArea.getText();
+            if (target.contains("youtube.com/@")) {
+                String resolved = resolveYouTubeHandle(target);
+                if (resolved != null) target = resolved;
+            }
             ButtonConfig updated = new ButtonConfig(
-                labelField.getText(), (String) typeBox.getSelectedItem(), targetArea.getText());
+                labelField.getText(), (String) typeBox.getSelectedItem(), target);
             if ("FOLDER".equals(updated.getType())) {
                 if (cfg.getPages() != null)
                     updated.setPages(cfg.getPages());
@@ -1233,7 +1261,7 @@ public class StreamDeckApp extends JFrame {
         return found;
     }
 
-    private List<String> fetchVideoIds(String url) {
+    private String fetchUrlContent(String url) {
         try {
             java.net.HttpURLConnection conn = (java.net.HttpURLConnection) new java.net.URL(url).openConnection();
             conn.setConnectTimeout(10000);
@@ -1241,33 +1269,45 @@ public class StreamDeckApp extends JFrame {
             conn.setRequestProperty("User-Agent", "Mozilla/5.0");
             if (conn.getResponseCode() != 200) return null;
             BufferedReader r = new BufferedReader(new InputStreamReader(conn.getInputStream(), "UTF-8"));
-            StringBuilder html = new StringBuilder();
+            StringBuilder sb = new StringBuilder();
             char[] buf = new char[4096];
             int n;
-            while ((n = r.read(buf)) > 0) html.append(buf, 0, n);
+            while ((n = r.read(buf)) > 0) sb.append(buf, 0, n);
             r.close();
-            String raw = html.toString();
-            int dataIdx = raw.indexOf("ytInitialData");
-            if (dataIdx >= 0) {
-                int brace = raw.indexOf('{', dataIdx);
-                if (brace >= 0) {
-                    int depth = 0;
-                    int end = brace;
-                    for (int i = brace; i < raw.length(); i++) {
-                        char c = raw.charAt(i);
-                        if (c == '{') depth++;
-                        else if (c == '}') { depth--; if (depth == 0) { end = i + 1; break; } }
-                    }
-                    if (end > brace) {
-                        try {
-                            String json = raw.substring(brace, end);
-                            com.google.gson.JsonObject root = com.google.gson.JsonParser.parseString(json).getAsJsonObject();
-                            java.util.LinkedHashSet<String> ids = new java.util.LinkedHashSet<>();
-                            collectVideoRendererIds(root, ids);
-                            if (!ids.isEmpty()) return new java.util.ArrayList<>(ids);
-                        } catch (Exception ignored) {}
-                    }
-                }
+            return sb.toString();
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    private String extractYtInitialDataJson(String html) {
+        if (html == null) return null;
+        int dataIdx = html.indexOf("ytInitialData");
+        if (dataIdx < 0) return null;
+        int brace = html.indexOf('{', dataIdx);
+        if (brace < 0) return null;
+        int depth = 0;
+        int end = brace;
+        for (int i = brace; i < html.length(); i++) {
+            char c = html.charAt(i);
+            if (c == '{') depth++;
+            else if (c == '}') { depth--; if (depth == 0) { end = i + 1; break; } }
+        }
+        return end > brace ? html.substring(brace, end) : null;
+    }
+
+    private List<String> fetchVideoIds(String url) {
+        try {
+            String raw = fetchUrlContent(url);
+            if (raw == null) return null;
+            String json = extractYtInitialDataJson(raw);
+            if (json != null) {
+                try {
+                    com.google.gson.JsonObject root = com.google.gson.JsonParser.parseString(json).getAsJsonObject();
+                    java.util.LinkedHashSet<String> ids = new java.util.LinkedHashSet<>();
+                    collectVideoRendererIds(root, ids);
+                    if (!ids.isEmpty()) return new java.util.ArrayList<>(ids);
+                } catch (Exception ignored) {}
             }
             java.util.regex.Pattern p = java.util.regex.Pattern.compile("\"videoId\":\"([A-Za-z0-9_-]{6,})\"");
             java.util.regex.Matcher m = p.matcher(raw);
@@ -1296,6 +1336,58 @@ public class StreamDeckApp extends JFrame {
             for (com.google.gson.JsonElement e : el.getAsJsonArray()) {
                 collectVideoRendererIds(e, out);
             }
+        }
+    }
+
+    private void collectChannelIds(com.google.gson.JsonElement el, java.util.LinkedHashSet<String> out) {
+        if (el.isJsonObject()) {
+            com.google.gson.JsonObject obj = el.getAsJsonObject();
+            if (obj.has("channelRenderer")) {
+                com.google.gson.JsonObject cr = obj.getAsJsonObject("channelRenderer");
+                if (cr != null && cr.has("channelId")) {
+                    String cid = cr.get("channelId").getAsString();
+                    if (cid != null && !cid.isEmpty()) out.add(cid);
+                }
+            }
+            for (java.util.Map.Entry<String, com.google.gson.JsonElement> e : obj.entrySet()) {
+                collectChannelIds(e.getValue(), out);
+            }
+        } else if (el.isJsonArray()) {
+            for (com.google.gson.JsonElement e : el.getAsJsonArray()) {
+                collectChannelIds(e, out);
+            }
+        }
+    }
+
+    private String resolveYouTubeHandle(String url) {
+        try {
+            String handle = url.replaceFirst(".*youtube\\.com/@([^/?]+).*", "$1");
+            if (handle.isEmpty() || handle.equals(url)) return null;
+            String searchUrl = "https://www.youtube.com/results?search_query=" + java.net.URLEncoder.encode(handle, "UTF-8");
+            String html = fetchUrlContent(searchUrl);
+            if (html == null) {
+                log("resolveYouTubeHandle: search page returned null for " + handle);
+                return null;
+            }
+            String json = extractYtInitialDataJson(html);
+            if (json == null) {
+                log("resolveYouTubeHandle: no ytInitialData in search results for " + handle);
+                return null;
+            }
+            com.google.gson.JsonObject root = com.google.gson.JsonParser.parseString(json).getAsJsonObject();
+            java.util.LinkedHashSet<String> channelIds = new java.util.LinkedHashSet<>();
+            collectChannelIds(root, channelIds);
+            if (channelIds.isEmpty()) {
+                log("resolveYouTubeHandle: no channelRenderer found for " + handle);
+                return null;
+            }
+            String channelId = channelIds.iterator().next();
+            String channelUrl = "https://www.youtube.com/channel/" + channelId + "/videos";
+            log("resolveYouTubeHandle: resolved " + handle + " -> " + channelUrl);
+            return channelUrl;
+        } catch (Exception e) {
+            log("resolveYouTubeHandle: error resolving " + url + ": " + e.getMessage());
+            return null;
         }
     }
 
@@ -1723,7 +1815,7 @@ public class StreamDeckApp extends JFrame {
 
     private String suggestLabel(String url) {
         try {
-            URI uri = new URI(url.contains("@") ? url.replace("@", "%40") : url);
+            URI uri = new URI(url);
             String host = uri.getHost();
             String path = uri.getPath();
             if (host != null && path != null && (host.contains("youtube.com") || host.contains("youtu.be"))) {
