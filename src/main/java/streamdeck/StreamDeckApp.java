@@ -64,6 +64,7 @@ public class StreamDeckApp extends JFrame {
     private int savedRootPage;
     private boolean searchDialogOpen;
     private boolean browseDialogOpen;
+    private boolean folderDialogOpen;
     private java.awt.KeyEventDispatcher searchKeyDispatcher;
     private final File logDir;
     private final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor(r -> {
@@ -432,7 +433,7 @@ public class StreamDeckApp extends JFrame {
         searchKeyDispatcher = e -> {
             if (e.getID() == KeyEvent.KEY_TYPED) {
                 char c = e.getKeyChar();
-                if (!Character.isISOControl(c) && !e.isMetaDown() && !e.isControlDown() && !e.isAltDown() && !searchDialogOpen && !browseDialogOpen) {
+                if (!Character.isISOControl(c) && !e.isMetaDown() && !e.isControlDown() && !e.isAltDown() && !searchDialogOpen && !browseDialogOpen && !folderDialogOpen) {
                     Component focusOwner = KeyboardFocusManager.getCurrentKeyboardFocusManager().getFocusOwner();
                     if (!(focusOwner instanceof javax.swing.text.JTextComponent)) {
                         showSearchDialog(String.valueOf(c));
@@ -441,7 +442,7 @@ public class StreamDeckApp extends JFrame {
                 }
                 return false;
             }
-            if (e.getID() == KeyEvent.KEY_RELEASED && e.getKeyCode() == KeyEvent.VK_ESCAPE && !searchDialogOpen
+            if (e.getID() == KeyEvent.KEY_RELEASED && e.getKeyCode() == KeyEvent.VK_ESCAPE && !searchDialogOpen && !folderDialogOpen
                 && !e.isMetaDown() && !e.isControlDown() && !e.isAltDown()) {
                 long held = System.currentTimeMillis() - escPressTime;
                 escPressTime = 0;
@@ -464,7 +465,7 @@ public class StreamDeckApp extends JFrame {
                 return true;
             }
             if (!e.isMetaDown() && !e.isControlDown() && !e.isAltDown()) {
-                if (e.getKeyCode() == KeyEvent.VK_ESCAPE && !searchDialogOpen) {
+                if (e.getKeyCode() == KeyEvent.VK_ESCAPE && !searchDialogOpen && !folderDialogOpen) {
                     if (escPressTime == 0) escPressTime = System.currentTimeMillis();
                     return true;
                 }
@@ -710,34 +711,37 @@ public class StreamDeckApp extends JFrame {
         if (pageIdx < 0) return;
 
         JPopupMenu popup = new JPopupMenu();
+        List<ButtonConfig> btns = currentPageBtns();
+        boolean hasButton = pageIdx < btns.size() && btns.get(pageIdx) != null;
+
         JMenuItem editItem = new JMenuItem("Bearbeiten...");
         editItem.addActionListener(ev -> editButton(pageIdx));
         popup.add(editItem);
 
+        if (hasButton) {
+            JMenuItem moveToFolderItem = new JMenuItem("In Ordner verschieben...");
+            moveToFolderItem.addActionListener(ev -> moveToFolder(pageIdx));
+            popup.add(moveToFolderItem);
+        }
+
+        popup.addSeparator();
+
         JMenuItem folderItem = new JMenuItem("Ordner anlegen");
         folderItem.addActionListener(ev -> {
-            List<ButtonConfig> btns = currentPageBtns();
+            List<ButtonConfig> btns2 = currentPageBtns();
             ButtonConfig folderCfg = new ButtonConfig("Ordner", "FOLDER", "");
             List<List<ButtonConfig>> folderPages = new ArrayList<>();
             folderPages.add(new ArrayList<>());
             folderCfg.setPages(folderPages);
-            while (pageIdx >= btns.size()) btns.add(null);
-            btns.set(pageIdx, folderCfg);
+            while (pageIdx >= btns2.size()) btns2.add(null);
+            btns2.set(pageIdx, folderCfg);
             configDirty = true;
             saveAndRefresh();
         });
         popup.add(folderItem);
 
-        List<ButtonConfig> btns = currentPageBtns();
-        if (pageIdx < btns.size() && btns.get(pageIdx) != null) {
+        if (hasButton) {
             ButtonConfig cfg = btns.get(pageIdx);
-            JMenuItem clearItem = new JMenuItem("Entfernen");
-            clearItem.addActionListener(ev -> {
-                btns.set(pageIdx, null);
-                configDirty = true;
-                saveAndRefresh();
-            });
-            popup.add(clearItem);
             popup.addSeparator();
             JMenuItem markItem = new JMenuItem("Als neu markieren");
             markItem.addActionListener(ev -> {
@@ -747,9 +751,112 @@ public class StreamDeckApp extends JFrame {
                 updateAllButtons();
             });
             popup.add(markItem);
+
+            popup.addSeparator();
+            JMenuItem clearItem = new JMenuItem("Entfernen");
+            clearItem.addActionListener(ev -> {
+                btns.set(pageIdx, null);
+                configDirty = true;
+                saveAndRefresh();
+            });
+            popup.add(clearItem);
         }
 
         popup.show(e.getComponent(), e.getX(), e.getY());
+    }
+
+    private void moveToFolder(int sourcePageIdx) {
+        List<ButtonConfig> btns = currentPageBtns();
+        ButtonConfig sourceCfg = btns.get(sourcePageIdx);
+        if (sourceCfg == null) return;
+
+        List<String> displayNames = new ArrayList<>();
+        List<ButtonConfig> folderRefs = new ArrayList<>();
+        collectAllFolders(pages, displayNames, folderRefs, sourceCfg, "");
+
+        if (displayNames.isEmpty()) {
+            JOptionPane.showMessageDialog(this,
+                "Es sind keine Ordner zum Verschieben vorhanden.\nLege zuerst einen Ordner an (Rechtsklick > Ordner anlegen).",
+                "In Ordner verschieben", JOptionPane.INFORMATION_MESSAGE);
+            return;
+        }
+
+        Integer[] sortIdx = new Integer[displayNames.size()];
+        for (int i = 0; i < sortIdx.length; i++) sortIdx[i] = i;
+        java.util.Arrays.sort(sortIdx, (a, b) -> String.CASE_INSENSITIVE_ORDER.compare(displayNames.get(a), displayNames.get(b)));
+        List<String> sortedNames = new ArrayList<>();
+        List<ButtonConfig> sortedRefs = new ArrayList<>();
+        for (int i : sortIdx) {
+            sortedNames.add(displayNames.get(i));
+            sortedRefs.add(folderRefs.get(i));
+        }
+
+        JDialog dialog = new JDialog(this, "In Ordner verschieben", true);
+        dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
+        folderDialogOpen = true;
+
+        JList<String> folderList = new JList<>(sortedNames.toArray(new String[0]));
+        folderList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        folderList.setSelectedIndex(0);
+
+        JButton moveBtn = new JButton("Verschieben");
+        JButton cancelBtn = new JButton("Abbrechen");
+        dialog.getRootPane().setDefaultButton(moveBtn);
+
+        moveBtn.addActionListener(ev -> {
+            int idx = folderList.getSelectedIndex();
+            if (idx < 0) return;
+            ButtonConfig targetFolder = sortedRefs.get(idx);
+            List<List<ButtonConfig>> folderPages = targetFolder.getPages();
+            if (folderPages == null || folderPages.isEmpty()) {
+                folderPages = new ArrayList<>();
+                folderPages.add(new ArrayList<>());
+                targetFolder.setPages(folderPages);
+            }
+            folderPages.get(0).add(sourceCfg);
+            btns.set(sourcePageIdx, null);
+            configDirty = true;
+            saveAndRefresh();
+            dialog.dispose();
+        });
+
+        cancelBtn.addActionListener(ev -> dialog.dispose());
+
+        dialog.setLayout(new BorderLayout());
+        dialog.add(new JLabel("In welchen Ordner verschieben?", JLabel.CENTER), BorderLayout.NORTH);
+        dialog.add(new JScrollPane(folderList), BorderLayout.CENTER);
+        JPanel btnPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 8));
+        btnPanel.add(moveBtn);
+        btnPanel.add(cancelBtn);
+        dialog.add(btnPanel, BorderLayout.SOUTH);
+        dialog.setSize(350, 300);
+        dialog.setLocationRelativeTo(this);
+        dialog.setVisible(true);
+        folderDialogOpen = false;
+    }
+
+    private void collectAllFolders(List<List<ButtonConfig>> pageList,
+                                   List<String> displayNames,
+                                   List<ButtonConfig> folderRefs,
+                                   ButtonConfig exclude,
+                                   String pathPrefix) {
+        for (int p = 0; p < pageList.size(); p++) {
+            List<ButtonConfig> page = pageList.get(p);
+            for (ButtonConfig cfg : page) {
+                if (cfg != null && "FOLDER".equals(cfg.getType()) && cfg != exclude) {
+                    String ctx = pathPrefix.isEmpty()
+                        ? "(S." + (p + 1) + ")"
+                        : "(" + pathPrefix + " > S." + (p + 1) + ")";
+                    displayNames.add(cfg.getLabel() + " " + ctx);
+                    folderRefs.add(cfg);
+                    if (cfg.getPages() != null) {
+                        String subPrefix = pathPrefix.isEmpty()
+                            ? cfg.getLabel() : pathPrefix + " > " + cfg.getLabel();
+                        collectAllFolders(cfg.getPages(), displayNames, folderRefs, exclude, subPrefix);
+                    }
+                }
+            }
+        }
     }
 
     private void editButton(int pageIdx) {
