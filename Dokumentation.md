@@ -1,6 +1,6 @@
 # App Deck - Technische Dokumentation
 
-Version 1.5 vom 21.05.2026
+Version 1.6 vom 22.05.2026
 
 ---
 
@@ -158,7 +158,7 @@ Version 1.5 vom 21.05.2026
 
 ```
 src/main/java/streamdeck/
-  StreamDeckApp.java   - Hauptklasse (GUI, Logik, ~2252 Zeilen, Stand V1.5)
+  StreamDeckApp.java   - Hauptklasse (GUI, Logik, ~2359 Zeilen, Stand V1.6)
   ButtonConfig.java    - Datenmodell fur eine Schaltfläche
   ConfigLoader.java    - JSON-Persistenz (Gson)
 
@@ -241,7 +241,7 @@ JFrame (App Deck)
     JPanel ("gridPanel", 6 Spalten x 4 Zeilen, FlowLayout/CENTER, 6px Abstand)
       JButton[24] (jeweils 120x120, Gradient 248,248,250 -> 225,225,230)
   BorderLayout.SOUTH
-    JLabel (Version "V1.5 vom 21.05.26" in grau)
+    JLabel (Version "V1.6 vom 22.05.26" in grau)
 ```
 
 `bg`-Panel übersetzt mit `GridBagLayout` (anchor=CENTER, fill=NONE), dadurch bleibt `gridPanel` immer zentriert.
@@ -338,7 +338,7 @@ Das Script fuhrt `mvn package` und `jpackage` aus und erzeugt `App Deck.app`.
 
 ```bash
 mvn package -q
-java -jar target/streamdeck-1.5.jar [config.json]
+java -jar target/streamdeck-1.6.jar [config.json]
 ```
 
 ### 5.3 .app-Bundle starten
@@ -404,15 +404,15 @@ Menupunkte:
 ### 7.1 Build (build-app.sh)
 
 ```bash
-mvn package -q                                  # Erzeugt target/streamdeck-1.5.jar
+mvn package -q                                  # Erzeugt target/streamdeck-1.6.jar
 rm -rf dist/                                    # Bereinigen
 jpackage \                                      # .app-Bundle erzeugen
   --type app-image \
   --name "App Deck" \
-  --app-version "1.5" \
+  --app-version "1.6" \
   --icon icons/app-icon.icns \
   --input target/ \
-  --main-jar streamdeck-1.5.jar \
+  --main-jar streamdeck-1.6.jar \
   --main-class streamdeck.StreamDeckApp \
   --mac-package-identifier com.dobronski.appdeck \
   --dest dist/

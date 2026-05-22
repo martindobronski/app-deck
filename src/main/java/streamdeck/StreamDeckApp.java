@@ -99,7 +99,7 @@ public class StreamDeckApp extends JFrame {
         JMenuItem aboutItem = new JMenuItem("Über App Desk");
         aboutItem.setMnemonic('b');
         aboutItem.addActionListener(e -> JOptionPane.showMessageDialog(this,
-            "App Desk V1.5\nEin Stream-Deck-artiger Schaltflächenstarter für macOS.\n\nErstellt am 21.05.26",
+            "App Desk V1.6\nEin Stream-Deck-artiger Schaltflächenstarter für macOS.\n\nErstellt am 22.05.26",
             "Über App Desk", JOptionPane.INFORMATION_MESSAGE));
         appMenu.add(aboutItem);
         appMenu.addSeparator();
@@ -188,7 +188,7 @@ public class StreamDeckApp extends JFrame {
         bg.add(gridPanel, new GridBagConstraints());
         add(bg, BorderLayout.CENTER);
 
-        JLabel versionLabel = new JLabel("V1.5 vom 21.05.26", SwingConstants.CENTER);
+        JLabel versionLabel = new JLabel("V1.6 vom 22.05.26", SwingConstants.CENTER);
         versionLabel.setFont(versionLabel.getFont().deriveFont(9f));
         versionLabel.setForeground(new Color(150, 150, 150));
         versionLabel.setBackground(new Color(50, 50, 55));
@@ -1060,6 +1060,17 @@ public class StreamDeckApp extends JFrame {
         gbc.gridwidth = 2;
         panel.add(videoCheckBox, gbc);
 
+        JTextField keywordsField = new JTextField(cfg.getKeywords(), 20);
+        gbc.fill = GridBagConstraints.NONE;
+        gbc.weightx = 0;
+        gbc.gridwidth = 1;
+        gbc.gridx = 0; gbc.gridy = 4;
+        panel.add(new JLabel("Schlagworte:"), gbc);
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.weightx = 1.0;
+        gbc.gridx = 1;
+        panel.add(keywordsField, gbc);
+
         JButton okBtn = new JButton("OK");
         JButton cancelBtn = new JButton("Abbrechen");
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 0));
@@ -1102,6 +1113,7 @@ public class StreamDeckApp extends JFrame {
                 }
             }
             updated.setCheck(videoCheckBox.isSelected());
+            updated.setKeywords(keywordsField.getText().trim());
             while (pageIdx >= btns.size()) btns.add(null);
             btns.set(pageIdx, updated);
             configDirty = true;
@@ -1621,7 +1633,9 @@ public class StreamDeckApp extends JFrame {
             filtered.clear();
             for (Object[] entry : allEntries) {
                 ButtonConfig cfg = (ButtonConfig) entry[0];
-                if (cfg.getLabel().toLowerCase().contains(q) || cfg.getTarget().toLowerCase().contains(q)) {
+                String kw = cfg.getKeywords();
+                if (cfg.getLabel().toLowerCase().contains(q) || cfg.getTarget().toLowerCase().contains(q)
+                    || (kw != null && kw.toLowerCase().contains(q))) {
                     filtered.add(entry);
                     int rootPage = (int) entry[1];
                     String loc = entry[2] != null

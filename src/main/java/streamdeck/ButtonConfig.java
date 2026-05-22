@@ -12,6 +12,7 @@ public class ButtonConfig {
     private String latestVideoId;
     private List<String> knownVideoIds;
     private int newCount;
+    private String keywords;
 
     public ButtonConfig() {}
 
@@ -29,6 +30,7 @@ public class ButtonConfig {
     public String getLatestVideoId() { return latestVideoId; }
     public List<String> getKnownVideoIds() { return knownVideoIds; }
     public boolean isHasNew() { return newCount > 0; }
+    public String getKeywords() { return keywords; }
 
     public void setHasNew(boolean v) {
         if (v) {
@@ -47,4 +49,5 @@ public class ButtonConfig {
     public void setKnownVideoIds(List<String> knownVideoIds) { this.knownVideoIds = knownVideoIds; }
     public int getNewCount() { return newCount; }
     public void setNewCount(int newCount) { this.newCount = newCount; }
+    public void setKeywords(String keywords) { this.keywords = keywords; }
 }

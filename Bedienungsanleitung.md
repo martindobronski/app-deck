@@ -1,6 +1,6 @@
 # Bedienungsanleitung App Deck
 
-Version 1.5 vom 21.05.2026
+Version 1.6 vom 22.05.2026
 
 ---
 
@@ -39,7 +39,7 @@ Die Anwendung richtet sich an alle, die häufig die gleichen Programme, Webseite
 ### 2.3 Starten über die Kommandozeile
 
 ```bash
-java -jar streamdeck-1.5.jar [pfad/zur/config.json]
+java -jar streamdeck-1.6.jar [pfad/zur/config.json]
 ```
 
 ### 2.4 Konfigurationsdatei
@@ -396,6 +396,7 @@ Es werden keine personenbezogenen Daten an Dritte übermittelt. Die Verbindung z
 
 | Version | Datum      | Änderungen                                             |
 | ------- | ---------- | ------------------------------------------------------ |
+| 1.6     | 22.05.2026 | Suchbegriffe (Schlagworte) für Schaltflächen           |
 | 1.5     | 21.05.2026 | @-Handle-Auflösung, newCount kumulierend,              |
 |         |            | ytInitialData-Parsing, ESC-Rückwärtsnavigation,        |
 |         |            | configDirty-Flag                                       |

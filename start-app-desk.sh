@@ -8,6 +8,6 @@ if [ -f "$PIDFILE" ] && kill -0 "$(cat "$PIDFILE")" 2>/dev/null; then
             set frontmost of (every process whose unix id is '"$(cat "$PIDFILE")"') to true
         end tell'
 else
-    java -jar target/streamdeck-1.5.jar &
+    java -jar target/streamdeck-1.6.jar &
     echo $! > "$PIDFILE"
 fi
