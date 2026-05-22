@@ -443,7 +443,7 @@ public class StreamDeckApp extends JFrame {
                 return false;
             }
             if (e.getID() == KeyEvent.KEY_RELEASED && e.getKeyCode() == KeyEvent.VK_ESCAPE && !searchDialogOpen && !folderDialogOpen
-                && !e.isMetaDown() && !e.isControlDown() && !e.isAltDown()) {
+                && !e.isMetaDown() && !e.isControlDown() && !e.isAltDown() && escPressTime != 0) {
                 long held = System.currentTimeMillis() - escPressTime;
                 escPressTime = 0;
                 if (held >= 800) {
