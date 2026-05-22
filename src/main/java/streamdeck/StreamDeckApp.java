@@ -20,6 +20,7 @@ import java.net.URL;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
+import java.util.Stack;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -62,6 +63,8 @@ public class StreamDeckApp extends JFrame {
     private final Set<String> killedApps = new HashSet<>();
     private ButtonConfig currentFolder;
     private int savedRootPage;
+    private final Stack<ButtonConfig> folderStack = new Stack<>();
+    private final Stack<Integer> savedPageStack = new Stack<>();
     private boolean searchDialogOpen;
     private boolean browseDialogOpen;
     private boolean folderDialogOpen;
@@ -447,10 +450,9 @@ public class StreamDeckApp extends JFrame {
                 long held = System.currentTimeMillis() - escPressTime;
                 escPressTime = 0;
                 if (held >= 800) {
-                    if (currentFolder != null) {
-                        currentFolder = null;
-                        currentPage = savedRootPage;
-                    }
+                    folderStack.clear();
+                    savedPageStack.clear();
+                    currentFolder = null;
                     currentPage = 0;
                     updateAllButtons();
                 } else {
@@ -556,8 +558,13 @@ public class StreamDeckApp extends JFrame {
     }
 
     private void leaveFolder() {
-        currentFolder = null;
-        currentPage = savedRootPage;
+        if (!folderStack.isEmpty()) {
+            currentFolder = folderStack.pop();
+            savedRootPage = savedPageStack.pop();
+        } else {
+            currentFolder = null;
+            currentPage = savedRootPage;
+        }
         updateAllButtons();
     }
 
@@ -770,6 +777,12 @@ public class StreamDeckApp extends JFrame {
             popup.addSeparator();
             JMenuItem clearItem = new JMenuItem("Entfernen");
             clearItem.addActionListener(ev -> {
+                String label = cfg.getLabel();
+                String detail = "FOLDER".equals(cfg.getType()) ? "\n\nDer gesamte Ordner mit allen Unterseiten wird gelöscht." : "";
+                int confirm = JOptionPane.showConfirmDialog(this,
+                    "Schaltfläche \"" + label + "\" wirklich entfernen?" + detail,
+                    "Entfernen", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
+                if (confirm != JOptionPane.YES_OPTION) return;
                 btns.set(pageIdx, null);
                 configDirty = true;
                 saveAndRefresh();
@@ -1545,11 +1558,15 @@ public class StreamDeckApp extends JFrame {
 
     private void execute(ButtonConfig cfg) {
         if ("FOLDER".equals(cfg.getType())) {
-            if (currentFolder != null) return;
+            if (currentFolder != null) {
+                folderStack.push(currentFolder);
+                savedPageStack.push(savedRootPage);
+            }
             savedRootPage = currentPage;
             currentPage = 0;
             currentFolder = cfg;
             updateAllButtons();
+            btnComponents[0].requestFocusInWindow();
             return;
         }
         if ("COPY".equals(cfg.getType())) {
@@ -2145,9 +2162,12 @@ public class StreamDeckApp extends JFrame {
     private void drawFocusRing(Graphics g, int w, int h) {
         Graphics2D g2 = (Graphics2D) g.create();
         g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        g2.setColor(new Color(255, 200, 0, 50));
+        g2.setStroke(new BasicStroke(12f));
+        g2.drawRoundRect(2, 2, w - 5, h - 5, 14, 14);
         g2.setColor(new Color(255, 200, 0));
-        g2.setStroke(new BasicStroke(4f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_ROUND, 0, new float[]{8, 6}, 0));
-        g2.drawRoundRect(1, 1, w - 3, h - 3, 14, 14);
+        g2.setStroke(new BasicStroke(5f));
+        g2.drawRoundRect(2, 2, w - 5, h - 5, 14, 14);
         g2.dispose();
     }
 
