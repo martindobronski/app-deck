@@ -475,12 +475,27 @@ public class StreamDeckApp extends JFrame {
                     if (btnComponents[i] == focusOwner) { cur = i; break; }
                 }
                 if (cur >= 0) {
+                    if (e.getKeyCode() == KeyEvent.VK_RIGHT && cur == COLS * ROWS - 1) {
+                        nextPage();
+                        btnComponents[0].requestFocusInWindow();
+                        return true;
+                    }
+                    if (e.getKeyCode() == KeyEvent.VK_LEFT && cur == BOTTOM_ROW_START
+                        && (currentPage > 0 || currentFolder != null)) {
+                        if (currentFolder != null && currentPage == 0) { leaveFolder(); }
+                        else { prevPage(); }
+                        if (currentPage > 0 || currentFolder != null)
+                            btnComponents[BOTTOM_ROW_START].requestFocusInWindow();
+                        else
+                            btnComponents[0].requestFocusInWindow();
+                        return true;
+                    }
                     int row = cur / COLS;
                     int col = cur % COLS;
                     int target = -1;
                     switch (e.getKeyCode()) {
-                        case KeyEvent.VK_LEFT:  if (col > 0) target = cur - 1; break;
-                        case KeyEvent.VK_RIGHT: if (col < COLS - 1) target = cur + 1; break;
+                        case KeyEvent.VK_LEFT:  if (col > 0 || row > 0) target = cur - 1; break;
+                        case KeyEvent.VK_RIGHT: if (col < COLS - 1 || row < ROWS - 1) target = cur + 1; break;
                         case KeyEvent.VK_UP:    if (row > 0) target = cur - COLS; break;
                         case KeyEvent.VK_DOWN:  if (row < ROWS - 1) target = cur + COLS; break;
                         case KeyEvent.VK_ENTER: btnComponents[cur].doClick(); return true;
