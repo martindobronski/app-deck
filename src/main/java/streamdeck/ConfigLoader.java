@@ -17,12 +17,18 @@ public class ConfigLoader {
 
     public static class ConfigData {
         boolean focusMode = true;
+        boolean showFloatingIcon = true;
+        int floatIconX = -1;
+        int floatIconY = -1;
         List<List<ButtonConfig>> pages = new ArrayList<>();
 
         public ConfigData() {}
 
-        public ConfigData(boolean focusMode, List<List<ButtonConfig>> pages) {
+        public ConfigData(boolean focusMode, boolean showFloatingIcon, int floatIconX, int floatIconY, List<List<ButtonConfig>> pages) {
             this.focusMode = focusMode;
+            this.showFloatingIcon = showFloatingIcon;
+            this.floatIconX = floatIconX;
+            this.floatIconY = floatIconY;
             this.pages = pages;
         }
     }
@@ -37,6 +43,7 @@ public class ConfigLoader {
 
         ConfigData result = new ConfigData();
         result.focusMode = true;
+        result.showFloatingIcon = true;
         List<List<ButtonConfig>> pages = load(path);
         result.pages = pages;
         return result;
@@ -66,9 +73,9 @@ public class ConfigLoader {
         return empty;
     }
 
-    public static void saveWithSettings(String path, List<List<ButtonConfig>> pages, boolean focusMode) throws IOException {
+    public static void saveWithSettings(String path, List<List<ButtonConfig>> pages, boolean focusMode, boolean showFloatingIcon, int floatIconX, int floatIconY) throws IOException {
         try (FileWriter writer = new FileWriter(path)) {
-            gson.toJson(new ConfigData(focusMode, pages), writer);
+            gson.toJson(new ConfigData(focusMode, showFloatingIcon, floatIconX, floatIconY, pages), writer);
         }
     }
 

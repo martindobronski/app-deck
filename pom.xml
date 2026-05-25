@@ -6,12 +6,11 @@
 
     <groupId>streamdeck</groupId>
     <artifactId>streamdeck</artifactId>
-    <version>1.6</version>
+    <version>1.7</version>
 
     <properties>
-        <maven.compiler.source>21</maven.compiler.source>
-        <maven.compiler.target>21</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <maven.compiler.release>17</maven.compiler.release>
     </properties>
 
     <dependencies>

@@ -29,6 +29,7 @@ import java.util.Set;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.lang.reflect.Method;
 
 public class StreamDeckApp extends JFrame {
 
@@ -76,19 +77,31 @@ public class StreamDeckApp extends JFrame {
         return t;
     });
     private boolean fullscreenMode;
+    private boolean showFloatingIcon;
+    private int floatIconX = -1;
+    private int floatIconY = -1;
     private boolean configDirty;
     private volatile boolean skipAutoDetect;
     private long escPressTime;
     private JWindow darkBg;
+    private Process floatHelperProcess;
+    private javax.swing.Timer markerTimer;
+    private TrayIcon trayIcon;
 
-    public StreamDeckApp(List<List<ButtonConfig>> pages, String configPath, boolean focusMode) {
+    public StreamDeckApp(List<List<ButtonConfig>> pages, String configPath, boolean focusMode, boolean showFloatingIcon, int floatIconX, int floatIconY) {
         this.pages = pages;
         this.configPath = configPath;
         this.logDir = new File(configPath).getParentFile();
         this.fullscreenMode = focusMode;
+        this.showFloatingIcon = showFloatingIcon;
+        this.floatIconX = floatIconX;
+        this.floatIconY = floatIconY;
 
         log("=== App Desk gestartet ===");
-        Runtime.getRuntime().addShutdownHook(new Thread(() -> { if (configDirty) saveConfig(); log("=== App Desk beendet ==="); }));
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            if (configDirty) saveConfig();
+            log("=== App Desk beendet ===");
+        }));
         setDefaultCloseOperation(EXIT_ON_CLOSE);
         setTitle("App Deck");
         setIconImage(loadAppIcon());
@@ -102,7 +115,7 @@ public class StreamDeckApp extends JFrame {
         JMenuItem aboutItem = new JMenuItem("Über App Desk");
         aboutItem.setMnemonic('b');
         aboutItem.addActionListener(e -> JOptionPane.showMessageDialog(this,
-            "App Desk V1.6\nEin Stream-Deck-artiger Schaltflächenstarter für macOS.\n\nErstellt am 22.05.26",
+            "App Desk V1.7\nEin Stream-Deck-artiger Schaltflächenstarter für macOS.\n\nErstellt am 25.05.26",
             "Über App Desk", JOptionPane.INFORMATION_MESSAGE));
         appMenu.add(aboutItem);
         appMenu.addSeparator();
@@ -141,6 +154,11 @@ public class StreamDeckApp extends JFrame {
             Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx() | InputEvent.SHIFT_DOWN_MASK));
         fullscreenItem.addActionListener(e -> toggleFullscreen());
         appMenu.add(fullscreenItem);
+
+        JCheckBoxMenuItem floatItem = new JCheckBoxMenuItem("Schwebesymbol anzeigen", showFloatingIcon);
+        floatItem.setMnemonic('h');
+        floatItem.addActionListener(e -> setFloatingIconVisible(floatItem.isSelected()));
+        appMenu.add(floatItem);
         appMenu.addSeparator();
         JMenuItem backupItem = new JMenuItem("Konfiguration sichern");
         backupItem.setMnemonic('K');
@@ -191,7 +209,7 @@ public class StreamDeckApp extends JFrame {
         bg.add(gridPanel, new GridBagConstraints());
         add(bg, BorderLayout.CENTER);
 
-        JLabel versionLabel = new JLabel("V1.6 vom 22.05.26", SwingConstants.CENTER);
+        JLabel versionLabel = new JLabel("V1.7 vom 25.05.26", SwingConstants.CENTER);
         versionLabel.setFont(versionLabel.getFont().deriveFont(9f));
         versionLabel.setForeground(new Color(150, 150, 150));
         versionLabel.setBackground(new Color(50, 50, 55));
@@ -391,10 +409,7 @@ public class StreamDeckApp extends JFrame {
             @Override
             public void mousePressed(java.awt.event.MouseEvent e) {
                 if (fullscreenMode) {
-                    SwingUtilities.invokeLater(() -> {
-                        toFront();
-                        requestFocus();
-                    });
+                    SwingUtilities.invokeLater(StreamDeckApp.this::bringToFront);
                 }
             }
         });
@@ -403,11 +418,53 @@ public class StreamDeckApp extends JFrame {
         darkBg.setBounds(0, 0, screenSize.width, screenSize.height);
         if (fullscreenMode) darkBg.setVisible(true);
 
+        if (showFloatingIcon) startFloatingHelper();
+
+        markerTimer = new javax.swing.Timer(500, e -> {
+            File af = new File("/tmp/appdeck-activate.txt");
+            if (af.exists()) {
+                af.delete();
+                bringToFront();
+                if (showFloatingIcon) startFloatingHelper();
+            }
+            File pf = new File("/tmp/appdeck-pos.txt");
+            if (pf.exists()) {
+                try {
+                    String[] parts = new String(java.nio.file.Files.readAllBytes(pf.toPath())).trim().split(",");
+                    if (parts.length == 2) {
+                        int nx = Integer.parseInt(parts[0]);
+                        int ny = Integer.parseInt(parts[1]);
+                        if (nx != this.floatIconX || ny != this.floatIconY) {
+                            this.floatIconX = nx;
+                            this.floatIconY = ny;
+                            configDirty = true;
+                            log("float_helper Position: " + this.floatIconX + "," + this.floatIconY);
+                        }
+                    }
+                } catch (Exception ignored) {}
+                pf.delete();
+            }
+        });
+        markerTimer.start();
+
+        if (SystemTray.isSupported()) {
+            try {
+                SystemTray tray = SystemTray.getSystemTray();
+                Image trayImg = loadAppIcon().getScaledInstance(18, 18, Image.SCALE_SMOOTH);
+                trayIcon = new TrayIcon(trayImg, "App Deck");
+                trayIcon.setImageAutoSize(true);
+                trayIcon.addActionListener(e -> bringToFront());
+                tray.add(trayIcon);
+            } catch (Exception ex) {
+                log("SystemTray nicht verfügbar: " + ex.getMessage());
+            }
+        }
+
         addWindowFocusListener(new java.awt.event.WindowFocusListener() {
             @Override
             public void windowLostFocus(java.awt.event.WindowEvent e) {
                 if (fullscreenMode && e.getOppositeWindow() == darkBg) {
-                    SwingUtilities.invokeLater(() -> { toFront(); requestFocus(); });
+                    SwingUtilities.invokeLater(StreamDeckApp.this::bringToFront);
                 }
             }
             @Override
@@ -416,7 +473,7 @@ public class StreamDeckApp extends JFrame {
 
         Toolkit.getDefaultToolkit().addAWTEventListener(event -> {
             if (fullscreenMode && event instanceof ActionEvent && ((ActionEvent) event).getSource() instanceof JMenuItem) {
-                javax.swing.Timer t = new javax.swing.Timer(50, e -> { if (fullscreenMode) toFront(); });
+                javax.swing.Timer t = new javax.swing.Timer(50, e -> { if (fullscreenMode) bringToFront(); });
                 t.setRepeats(false);
                 t.start();
             }
@@ -427,7 +484,10 @@ public class StreamDeckApp extends JFrame {
             public void windowClosing(java.awt.event.WindowEvent e) {
                 log("=== App Desk beendet ===");
                 if (refreshTimer != null) refreshTimer.stop();
-                scheduler.shutdown();
+                if (markerTimer != null) markerTimer.stop();
+                stopFloatingHelper();
+                if (trayIcon != null) SystemTray.getSystemTray().remove(trayIcon);
+                scheduler.shutdownNow();
                 if (searchKeyDispatcher != null)
                     KeyboardFocusManager.getCurrentKeyboardFocusManager().removeKeyEventDispatcher(searchKeyDispatcher);
             }
@@ -1268,7 +1328,7 @@ public class StreamDeckApp extends JFrame {
 
     private void saveConfig() {
         try {
-            ConfigLoader.saveWithSettings(configPath, pages, fullscreenMode);
+            ConfigLoader.saveWithSettings(configPath, pages, fullscreenMode, showFloatingIcon, floatIconX, floatIconY);
             configDirty = false;
         } catch (IOException ex) {
             JOptionPane.showMessageDialog(this, "Fehler beim Speichern: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
@@ -1307,6 +1367,114 @@ public class StreamDeckApp extends JFrame {
     private void startVideoChecker() {
         log("YouTube-Prüfung gestartet");
         scheduler.scheduleWithFixedDelay(this::checkAllUrls, 10, CHECK_INTERVAL_MINUTES * 60L, TimeUnit.SECONDS);
+    }
+
+    private void setFloatingIconVisible(boolean visible) {
+        showFloatingIcon = visible;
+        if (visible) startFloatingHelper();
+        else stopFloatingHelper();
+        configDirty = true;
+        saveConfig();
+    }
+
+    private void startFloatingHelper() {
+        stopFloatingHelper();
+        try {
+            String helperPath = findHelper();
+            if (helperPath == null) { log("float_helper nicht gefunden"); return; }
+            String iconPath = findHelperIcon();
+            if (iconPath == null) { log("app-icon.png nicht gefunden"); return; }
+            java.util.List<String> cmd = new java.util.ArrayList<>();
+            cmd.add(helperPath);
+            cmd.add(iconPath);
+            cmd.add(String.valueOf(floatIconX));
+            cmd.add(String.valueOf(floatIconY));
+            floatHelperProcess = Runtime.getRuntime().exec(cmd.toArray(new String[0]));
+            log("float_helper gestartet (x=" + floatIconX + " y=" + floatIconY + ")");
+        } catch (Exception ex) {
+            log("float_helper Start fehlgeschlagen: " + ex.getMessage());
+        }
+    }
+
+    private void stopFloatingHelper() {
+        if (floatHelperProcess != null) {
+            floatHelperProcess.destroyForcibly();
+            floatHelperProcess = null;
+            log("float_helper beendet");
+        }
+    }
+
+    private String findHelper() {
+        String name = "float_helper";
+        try { File f = new File(name); if (f.exists() && f.canExecute()) return f.getAbsolutePath(); } catch (Exception ignored) {}
+        try {
+            String appPath = System.getProperty("jpackage.app-path");
+            if (appPath != null) {
+                File appDir = new File(appPath).getParentFile();
+                File r = new File(appDir, "../Resources/" + name);
+                if (r.exists() && r.canExecute()) return r.getCanonicalPath();
+            }
+        } catch (Exception ignored) {}
+        String[] subdirs = {"", "Resources/", "MacOS/"};
+        try {
+            String jarPath = StreamDeckApp.class.getProtectionDomain()
+                .getCodeSource().getLocation().toURI().getPath();
+            File dir = new File(jarPath).getParentFile();
+            for (int i = 0; i < 10 && dir != null; i++) {
+                for (String sub : subdirs) {
+                    File f = new File(dir, sub + name);
+                    if (f.exists() && f.canExecute()) return f.getCanonicalPath();
+                }
+                dir = dir.getParentFile();
+            }
+        } catch (Exception ignored) {}
+        return null;
+    }
+
+    private String findHelperIcon() {
+        String name = "app-icon.png";
+        try { File f = new File(name); if (f.exists()) return f.getAbsolutePath(); } catch (Exception ignored) {}
+        try {
+            String appPath = System.getProperty("jpackage.app-path");
+            if (appPath != null) {
+                File appDir = new File(appPath).getParentFile();
+                File r = new File(appDir, "../Resources/" + name);
+                if (r.exists()) return r.getCanonicalPath();
+            }
+        } catch (Exception ignored) {}
+        try (InputStream is = getClass().getResourceAsStream("/streamdeck/" + name)) {
+            if (is != null) {
+                File tmp = File.createTempFile("AppDeck_icon_", ".png");
+                tmp.deleteOnExit();
+                java.nio.file.Files.copy(is, tmp.toPath(), java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+                return tmp.getAbsolutePath();
+            }
+        } catch (Exception ignored) {}
+        String[] subdirs = {"", "Resources/", "MacOS/"};
+        try {
+            String jarPath = StreamDeckApp.class.getProtectionDomain()
+                .getCodeSource().getLocation().toURI().getPath();
+            File dir = new File(jarPath).getParentFile();
+            for (int i = 0; i < 10 && dir != null; i++) {
+                for (String sub : subdirs) {
+                    File f = new File(dir, sub + name);
+                    if (f.exists()) return f.getCanonicalPath();
+                }
+                dir = dir.getParentFile();
+            }
+        } catch (Exception ignored) {}
+        return null;
+    }
+
+    private void bringToFront() {
+        try {
+            Runtime.getRuntime().exec(new String[]{"osascript", "-e",
+                "tell application \"App Deck\" to activate"});
+        } catch (Exception ex) {
+            log("bringToFront via osascript fehlgeschlagen: " + ex.getMessage());
+            toFront();
+            requestFocus();
+        }
     }
 
     private void toggleFullscreen() {
@@ -1612,6 +1780,11 @@ public class StreamDeckApp extends JFrame {
             }
         } catch (Exception ex) {
             JOptionPane.showMessageDialog(this, "Error: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+        }
+        if (showFloatingIcon && !"FOLDER".equals(cfg.getType()) && !"COPY".equals(cfg.getType())) {
+            javax.swing.Timer raiseTimer = new javax.swing.Timer(300, e -> startFloatingHelper());
+            raiseTimer.setRepeats(false);
+            raiseTimer.start();
         }
     }
 
@@ -2290,7 +2463,7 @@ public class StreamDeckApp extends JFrame {
                         }
                     } else {
                         try {
-                            ConfigLoader.saveWithSettings(appSupport, List.of(new java.util.ArrayList<>()), true);
+                            ConfigLoader.saveWithSettings(appSupport, List.of(new java.util.ArrayList<>()), true, true, -1, -1);
                         } catch (IOException e) {
                             JOptionPane.showMessageDialog(null,
                                 "Konnte keine Standard-Konfiguration anlegen:\n"
@@ -2315,9 +2488,15 @@ public class StreamDeckApp extends JFrame {
         }
         List<List<ButtonConfig>> pages = configData.pages;
         boolean focusMode = configData.focusMode;
+        boolean showFloatingIcon = configData.showFloatingIcon;
+        int fix = configData.floatIconX;
+        int fiy = configData.floatIconY;
         String finalConfigPath = configPath;
         boolean ff = focusMode;
-        SwingUtilities.invokeLater(() -> new StreamDeckApp(pages, finalConfigPath, ff).setVisible(true));
+        boolean sfi = showFloatingIcon;
+        int fx = fix;
+        int fy = fiy;
+        SwingUtilities.invokeLater(() -> new StreamDeckApp(pages, finalConfigPath, ff, sfi, fx, fy).setVisible(true));
     }
 
     private static String findConfigNearAppBundle() {

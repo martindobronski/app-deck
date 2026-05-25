@@ -1,6 +1,6 @@
 #!/bin/bash
 # Build App Deck macOS .app bundle
-# Requires: maven, jpackage (JDK 16+)
+# Requires: maven, jpackage (JDK 16+), swiftc (Xcode)
 
 set -e
 
@@ -13,19 +13,34 @@ ICON="icons/app-icon.icns"
 echo "=== Building JAR ==="
 mvn package -q
 
+echo "=== Building native floating helper ==="
+swiftc -o float_helper float_helper.swift -framework Cocoa
+chmod +x float_helper
+
 echo "=== Creating .app bundle ==="
 rm -rf dist/
 cp Dokumentation.pdf Bedienungsanleitung.pdf target/
 jpackage \
   --type app-image \
   --name "$APP_NAME" \
-  --app-version "1.6" \
-  --icon icons/app-icon.icns \
+  --app-version "1.7" \
   --input target/ \
-  --main-jar streamdeck-1.6.jar \
+  --main-jar streamdeck-1.7.jar \
   --main-class streamdeck.StreamDeckApp \
   --mac-package-identifier "$BUNDLE_ID" \
   --dest dist/
+
+echo "=== Adding resources ==="
+cp float_helper "dist/$APP_NAME.app/Contents/Resources/"
+cp icons/app-icon.png "dist/$APP_NAME.app/Contents/Resources/" 2>/dev/null || true
+
+echo "=== Done ==="
+echo "App Bundle: dist/$APP_NAME.app"
+echo ""
+echo "Zum Starten: open \"dist/$APP_NAME.app\""
+rm -rf "$APP_NAME.app" 2>/dev/null
+cp -r "dist/$APP_NAME.app" .
+echo "Kopie im Projektroot: $APP_NAME.app"
 
 echo "=== Done ==="
 echo "App Bundle: dist/$APP_NAME.app"
