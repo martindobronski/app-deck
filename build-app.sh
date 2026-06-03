@@ -10,8 +10,11 @@ APP_NAME="App Deck"
 BUNDLE_ID="com.dobronski.appdeck"
 ICON="icons/app-icon.icns"
 
-echo "=== Building JAR ==="
-mvn package -q
+# Version aus pom.xml auslesen (zentrale Quelle)
+ARTIFACT_VERSION=$(grep -m1 '<version>' pom.xml | sed 's/.*<version>\(.*\)<\/version>.*/\1/')
+
+echo "=== Building JAR (Version: $ARTIFACT_VERSION) ==="
+mvn clean package -q
 
 echo "=== Building native floating helper ==="
 swiftc -o float_helper float_helper.swift -framework Cocoa
@@ -23,9 +26,9 @@ cp Dokumentation.pdf Bedienungsanleitung.pdf target/
 jpackage \
   --type app-image \
   --name "$APP_NAME" \
-  --app-version "1.7" \
+  --app-version "$ARTIFACT_VERSION" \
   --input target/ \
-  --main-jar streamdeck-1.7.jar \
+  --main-jar "streamdeck-$ARTIFACT_VERSION.jar" \
   --main-class streamdeck.StreamDeckApp \
   --mac-package-identifier "$BUNDLE_ID" \
   --dest dist/

@@ -1,6 +1,6 @@
 # App Deck - Technische Dokumentation
 
-Version 1.7 vom 25.05.2026
+Version 1.8 vom 03.06.2026
 
 ---
 
@@ -158,7 +158,7 @@ Version 1.7 vom 25.05.2026
 
 ```
 src/main/java/streamdeck/
-  StreamDeckApp.java   - Hauptklasse (GUI, Logik, ~2587 Zeilen, Stand V1.7)
+  StreamDeckApp.java   - Hauptklasse (GUI, Logik, ~2591 Zeilen, Stand V1.8)
   ButtonConfig.java    - Datenmodell fur eine Schaltfläche
   ConfigLoader.java    - JSON-Persistenz (Gson)
 
@@ -241,7 +241,7 @@ JFrame (App Deck)
     JPanel ("gridPanel", 6 Spalten x 4 Zeilen, FlowLayout/CENTER, 6px Abstand)
       JButton[24] (jeweils 120x120, Gradient 248,248,250 -> 225,225,230)
   BorderLayout.SOUTH
-    JLabel (Version "V1.7 vom 25.05.26" in grau)
+    JLabel (Version "V1.8 vom 03.06.26" in grau)
 ```
 
 `bg`-Panel übersetzt mit `GridBagLayout` (anchor=CENTER, fill=NONE), dadurch bleibt `gridPanel` immer zentriert.
@@ -338,7 +338,7 @@ Das Script fuhrt `mvn package` und `jpackage` aus und erzeugt `App Deck.app`.
 
 ```bash
 mvn package -q
-java -jar target/streamdeck-1.7.jar [config.json]
+java -jar target/streamdeck-1.8.jar [config.json]
 ```
 
 ### 5.3 .app-Bundle starten
@@ -404,15 +404,16 @@ Menupunkte:
 ### 7.1 Build (build-app.sh)
 
 ```bash
-mvn package -q                                  # Erzeugt target/streamdeck-1.7.jar
+ARTIFACT_VERSION=$(grep -m1 '<version>' pom.xml | sed 's/.*<version>\(.*\)<\/version>.*/\1/')
+mvn package -q                                  # Erzeugt target/streamdeck-$ARTIFACT_VERSION.jar
 rm -rf dist/                                    # Bereinigen
 jpackage \                                      # .app-Bundle erzeugen
   --type app-image \
   --name "App Deck" \
-  --app-version "1.7" \
+  --app-version "$ARTIFACT_VERSION" \
   --icon icons/app-icon.icns \
   --input target/ \
-  --main-jar streamdeck-1.7.jar \
+  --main-jar "streamdeck-$ARTIFACT_VERSION.jar" \
   --main-class streamdeck.StreamDeckApp \
   --mac-package-identifier com.dobronski.appdeck \
   --dest dist/

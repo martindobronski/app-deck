@@ -2,12 +2,15 @@
 cd "$(dirname "$0")"
 PIDFILE="/tmp/app-desk.pid"
 
+# Version aus pom.xml auslesen (zentrale Quelle)
+ARTIFACT_VERSION=$(grep -m1 '<version>' pom.xml | sed 's/.*<version>\(.*\)<\/version>.*/\1/')
+
 if [ -f "$PIDFILE" ] && kill -0 "$(cat "$PIDFILE")" 2>/dev/null; then
     osascript -e '
         tell application "System Events"
             set frontmost of (every process whose unix id is '"$(cat "$PIDFILE")"') to true
         end tell'
 else
-    java -jar target/streamdeck-1.7.jar &
+    java -jar "target/streamdeck-$ARTIFACT_VERSION.jar" &
     echo $! > "$PIDFILE"
 fi
