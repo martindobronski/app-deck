@@ -16,6 +16,9 @@ Prompts/
 # Website
 website/
 
+# Backup-Konfigurationen (lokale Maschine)
+bak/
+
 # Alte Builds / Notizen / Helfer
 App-Deck-v1.1.zip
 Liesmich.md
