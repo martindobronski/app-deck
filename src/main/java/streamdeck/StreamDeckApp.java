@@ -77,6 +77,7 @@ public class StreamDeckApp extends JFrame {
         return t;
     });
     private boolean fullscreenMode;
+    private JCheckBoxMenuItem fullscreenItem;
     private boolean showFloatingIcon;
     private int floatIconX = -1;
     private int floatIconY = -1;
@@ -87,6 +88,8 @@ public class StreamDeckApp extends JFrame {
     private Process floatHelperProcess;
     private javax.swing.Timer markerTimer;
     private TrayIcon trayIcon;
+
+    private static final String VERSION = "V1.8 vom 03.06.26";
 
     public StreamDeckApp(List<List<ButtonConfig>> pages, String configPath, boolean focusMode, boolean showFloatingIcon, int floatIconX, int floatIconY) {
         this.pages = pages;
@@ -115,7 +118,7 @@ public class StreamDeckApp extends JFrame {
         JMenuItem aboutItem = new JMenuItem("Über App Desk");
         aboutItem.setMnemonic('b');
         aboutItem.addActionListener(e -> JOptionPane.showMessageDialog(this,
-            "App Desk V1.7\nEin Stream-Deck-artiger Schaltflächenstarter für macOS.\n\nErstellt am 25.05.26",
+            "App Desk " + VERSION + "\nEin Stream-Deck-artiger Schaltflächenstarter für macOS.",
             "Über App Desk", JOptionPane.INFORMATION_MESSAGE));
         appMenu.add(aboutItem);
         appMenu.addSeparator();
@@ -148,7 +151,7 @@ public class StreamDeckApp extends JFrame {
         });
         appMenu.add(checkItem);
         appMenu.addSeparator();
-        JMenuItem fullscreenItem = new JMenuItem("Fokus-Modus umschalten");
+        fullscreenItem = new JCheckBoxMenuItem("Fokus-Modus umschalten", fullscreenMode);
         fullscreenItem.setMnemonic('V');
         fullscreenItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F, 
             Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx() | InputEvent.SHIFT_DOWN_MASK));
@@ -209,7 +212,7 @@ public class StreamDeckApp extends JFrame {
         bg.add(gridPanel, new GridBagConstraints());
         add(bg, BorderLayout.CENTER);
 
-        JLabel versionLabel = new JLabel("V1.7 vom 25.05.26", SwingConstants.CENTER);
+        JLabel versionLabel = new JLabel(VERSION, SwingConstants.CENTER);
         versionLabel.setFont(versionLabel.getFont().deriveFont(9f));
         versionLabel.setForeground(new Color(150, 150, 150));
         versionLabel.setBackground(new Color(50, 50, 55));
@@ -1486,6 +1489,7 @@ public class StreamDeckApp extends JFrame {
             fullscreenMode = false;
             darkBg.setVisible(false);
         }
+        fullscreenItem.setSelected(fullscreenMode);
         configDirty = true;
         saveConfig();
     }
