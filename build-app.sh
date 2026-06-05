@@ -27,6 +27,7 @@ jpackage \
   --type app-image \
   --name "$APP_NAME" \
   --app-version "$ARTIFACT_VERSION" \
+  --icon "$ICON" \
   --input target/ \
   --main-jar "streamdeck-$ARTIFACT_VERSION.jar" \
   --main-class streamdeck.StreamDeckApp \

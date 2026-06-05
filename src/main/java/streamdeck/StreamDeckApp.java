@@ -35,6 +35,10 @@ public class StreamDeckApp extends JFrame {
 
     static {
         System.setProperty("apple.awt.application.name", "App Deck");
+        try {
+            Class<?> appClass = Class.forName("com.apple.eawt.Application");
+            appClass.getMethod("getApplication").invoke(null);
+        } catch (Exception ignored) {}
     }
 
     private static final int COLS = 6;
@@ -102,6 +106,7 @@ public class StreamDeckApp extends JFrame {
 
         log("=== App Desk gestartet ===");
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            stopFloatingHelper();
             if (configDirty) saveConfig();
             log("=== App Desk beendet ===");
         }));
@@ -412,7 +417,7 @@ public class StreamDeckApp extends JFrame {
             @Override
             public void mousePressed(java.awt.event.MouseEvent e) {
                 if (fullscreenMode) {
-                    SwingUtilities.invokeLater(StreamDeckApp.this::bringToFront);
+                    bringToFront();
                 }
             }
         });
@@ -462,17 +467,6 @@ public class StreamDeckApp extends JFrame {
                 log("SystemTray nicht verfügbar: " + ex.getMessage());
             }
         }
-
-        addWindowFocusListener(new java.awt.event.WindowFocusListener() {
-            @Override
-            public void windowLostFocus(java.awt.event.WindowEvent e) {
-                if (fullscreenMode && e.getOppositeWindow() == darkBg) {
-                    SwingUtilities.invokeLater(StreamDeckApp.this::bringToFront);
-                }
-            }
-            @Override
-            public void windowGainedFocus(java.awt.event.WindowEvent e) {}
-        });
 
         Toolkit.getDefaultToolkit().addAWTEventListener(event -> {
             if (fullscreenMode && event instanceof ActionEvent && ((ActionEvent) event).getSource() instanceof JMenuItem) {
@@ -1382,6 +1376,9 @@ public class StreamDeckApp extends JFrame {
 
     private void startFloatingHelper() {
         stopFloatingHelper();
+        try {
+            Runtime.getRuntime().exec(new String[]{"pkill", "-x", "float_helper"}).waitFor(1, java.util.concurrent.TimeUnit.SECONDS);
+        } catch (Exception ignored) {}
         try {
             String helperPath = findHelper();
             if (helperPath == null) { log("float_helper nicht gefunden"); return; }

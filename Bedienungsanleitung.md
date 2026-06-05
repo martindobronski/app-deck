@@ -394,16 +394,16 @@ Es werden keine personenbezogenen Daten an Dritte übermittelt. Die Verbindung z
 
 ## 14. Versionshistorie
 
-| Version | Datum      | Änderungen                                             |
-| ------- | ---------- | ------------------------------------------------------ |
+| Version | Datum      | Änderungen                                                                |
+| ------- | ---------- | ------------------------------------------------------------------------- |
 | 1.8     | 03.06.2026 | Version zentralisiert (VERSION-Konstante), pom.xml als Quell der Wahrheit |
-| 1.7     | 25.05.2026 | Schwebesymbol verschiebbar, Position wird gemerkt     |
-| 1.6     | 22.05.2026 | Suchbegriffe (Schlagworte) für Schaltflächen           |
-| 1.5     | 21.05.2026 | @-Handle-Auflösung, newCount kumulierend,              |
-|         |            | ytInitialData-Parsing, ESC-Rückwärtsnavigation,        |
-|         |            | configDirty-Flag                                       |
-| 1.4     | 20.05.2026 | Fokus-Modus, JWindow-Fix, focusMode in config.json     |
-| 1.3     | 18.05.2026 | Config-Auswahldialog bei Erststart                     |
-| 1.2     | 17.05.2026 | Drag & Drop, Ordner, COPY-Typ, YouTube-Prüfung         |
-| 1.1     | 17.05.2026 | Icon-Ladung, laufende Apps, Suchdialog                 |
-| 1.0     | 16.05.2026 | Erste Version mit 5x3 Raster, URL/PROGRAM/FOLDER       |
+| 1.7     | 25.05.2026 | Schwebesymbol verschiebbar, Position wird gemerkt                         |
+| 1.6     | 22.05.2026 | Suchbegriffe (Schlagworte) für Schaltflächen                              |
+| 1.5     | 21.05.2026 | @-Handle-Auflösung, newCount kumulierend,                                 |
+|         |            | ytInitialData-Parsing, ESC-Rückwärtsnavigation,                           |
+|         |            | configDirty-Flag                                                          |
+| 1.4     | 20.05.2026 | Fokus-Modus, JWindow-Fix, focusMode in config.json                        |
+| 1.3     | 18.05.2026 | Config-Auswahldialog bei Erststart                                        |
+| 1.2     | 17.05.2026 | Drag & Drop, Ordner, COPY-Typ, YouTube-Prüfung                            |
+| 1.1     | 17.05.2026 | Icon-Ladung, laufende Apps, Suchdialog                                    |
+| 1.0     | 16.05.2026 | Erste Version mit 5x3 Raster, URL/PROGRAM/FOLDER                          |
