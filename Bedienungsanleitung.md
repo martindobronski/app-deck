@@ -1,6 +1,6 @@
 # Bedienungsanleitung App Deck
 
-Version 1.8 vom 03.06.2026
+Version 1.9 vom 05.06.2026
 
 ---
 
@@ -39,7 +39,7 @@ Die Anwendung richtet sich an alle, die häufig die gleichen Programme, Webseite
 ### 2.3 Starten über die Kommandozeile
 
 ```bash
-java -jar streamdeck-1.8.jar [pfad/zur/config.json]
+java -jar streamdeck-1.9.jar [pfad/zur/config.json]
 ```
 
 ### 2.4 Konfigurationsdatei
@@ -396,6 +396,7 @@ Es werden keine personenbezogenen Daten an Dritte übermittelt. Die Verbindung z
 
 | Version | Datum      | Änderungen                                                                |
 | ------- | ---------- | ------------------------------------------------------------------------- |
+| 1.9     | 05.06.2026 | Fokus-Modus-Fenster repariert, Dock-Icon gefixt, Popup vergrößert (18pt) |
 | 1.8     | 03.06.2026 | Version zentralisiert (VERSION-Konstante), pom.xml als Quell der Wahrheit |
 | 1.7     | 25.05.2026 | Schwebesymbol verschiebbar, Position wird gemerkt                         |
 | 1.6     | 22.05.2026 | Suchbegriffe (Schlagworte) für Schaltflächen                              |

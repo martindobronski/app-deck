@@ -1,6 +1,6 @@
 # App Deck - Technische Dokumentation
 
-Version 1.8 vom 03.06.2026
+Version 1.9 vom 05.06.2026
 
 ---
 
@@ -158,7 +158,7 @@ Version 1.8 vom 03.06.2026
 
 ```
 src/main/java/streamdeck/
-  StreamDeckApp.java   - Hauptklasse (GUI, Logik, ~2591 Zeilen, Stand V1.8)
+  StreamDeckApp.java   - Hauptklasse (GUI, Logik, ~2589 Zeilen, Stand V1.9)
   ButtonConfig.java    - Datenmodell fur eine Schaltfläche
   ConfigLoader.java    - JSON-Persistenz (Gson)
 
@@ -241,7 +241,7 @@ JFrame (App Deck)
     JPanel ("gridPanel", 6 Spalten x 4 Zeilen, FlowLayout/CENTER, 6px Abstand)
       JButton[24] (jeweils 120x120, Gradient 248,248,250 -> 225,225,230)
   BorderLayout.SOUTH
-    JLabel (Version "V1.8 vom 03.06.26" in grau)
+    JLabel (Version "V1.9 vom 05.06.26" in grau)
 ```
 
 `bg`-Panel übersetzt mit `GridBagLayout` (anchor=CENTER, fill=NONE), dadurch bleibt `gridPanel` immer zentriert.
@@ -338,7 +338,7 @@ Das Script fuhrt `mvn package` und `jpackage` aus und erzeugt `App Deck.app`.
 
 ```bash
 mvn package -q
-java -jar target/streamdeck-1.8.jar [config.json]
+java -jar target/streamdeck-1.9.jar [config.json]
 ```
 
 ### 5.3 .app-Bundle starten

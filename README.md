@@ -48,7 +48,7 @@ Or manually:
 
 ```bash
 mvn package -q
-java -jar target/streamdeck-1.8.jar [config.json]
+java -jar target/streamdeck-1.9.jar [config.json]
 ```
 
 ## Configuration
@@ -89,7 +89,7 @@ Full technical documentation (German):
 
 ## Project Status
 
-Version 1.8 - June 3, 2026
+Version 1.9 - June 5, 2026
 
 - macOS-only (planned: cross-platform single codebase)
 - Built with Java 21 + Swing + Gson 2.11.0

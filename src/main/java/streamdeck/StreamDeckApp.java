@@ -93,7 +93,7 @@ public class StreamDeckApp extends JFrame {
     private javax.swing.Timer markerTimer;
     private TrayIcon trayIcon;
 
-    private static final String VERSION = "V1.8 vom 03.06.26";
+    private static final String VERSION = "V1.9 vom 05.06.26";
 
     public StreamDeckApp(List<List<ButtonConfig>> pages, String configPath, boolean focusMode, boolean showFloatingIcon, int floatIconX, int floatIconY) {
         this.pages = pages;
