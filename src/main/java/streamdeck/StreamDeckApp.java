@@ -1798,14 +1798,7 @@ public class StreamDeckApp extends JFrame {
                 if (cfg != null) {
                     allEntries.add(new Object[]{cfg, p, null, i});
                     if ("FOLDER".equals(cfg.getType()) && cfg.getPages() != null) {
-                        for (int fp = 0; fp < cfg.getPages().size(); fp++) {
-                            List<ButtonConfig> fpage = cfg.getPages().get(fp);
-                            for (int fi = 0; fi < fpage.size(); fi++) {
-                                ButtonConfig fcfg = fpage.get(fi);
-                                if (fcfg != null)
-                                    allEntries.add(new Object[]{fcfg, p, cfg, fp, fi});
-                            }
-                        }
+                        addFolderEntries(allEntries, cfg.getPages(), p, new ArrayList<>(), cfg);
                     }
                 }
             }
@@ -1840,13 +1833,29 @@ public class StreamDeckApp extends JFrame {
             for (Object[] entry : allEntries) {
                 ButtonConfig cfg = (ButtonConfig) entry[0];
                 String kw = cfg.getKeywords();
-                if (cfg.getLabel().toLowerCase().contains(q) || cfg.getTarget().toLowerCase().contains(q)
-                    || (kw != null && kw.toLowerCase().contains(q))) {
+                String label = cfg.getLabel();
+                String target = cfg.getTarget();
+                boolean match = (label != null && label.toLowerCase().contains(q))
+                    || (target != null && target.toLowerCase().contains(q))
+                    || (kw != null && kw.toLowerCase().contains(q));
+                if (match) {
                     filtered.add(entry);
                     int rootPage = (int) entry[1];
-                    String loc = entry[2] != null
-                        ? "S." + (rootPage + 1) + " > " + ((ButtonConfig) entry[2]).getLabel() + " > S." + ((int) entry[3] + 1) + "/" + ((int) entry[4] + 1)
-                        : "S." + (rootPage + 1);
+                    String loc;
+                    Object folderObj = entry[2];
+                    if (folderObj instanceof List) {
+                        List<ButtonConfig> chain = (List<ButtonConfig>) folderObj;
+                        StringBuilder sb = new StringBuilder("S.").append(rootPage + 1);
+                        for (ButtonConfig fc : chain) {
+                            sb.append(" > ").append(fc.getLabel());
+                        }
+                        sb.append(" > S.").append(((int) entry[3] + 1)).append("/").append(((int) entry[4] + 1));
+                        loc = sb.toString();
+                    } else if (folderObj != null) {
+                        loc = "S." + (rootPage + 1) + " > " + ((ButtonConfig) folderObj).getLabel() + " > S." + ((int) entry[3] + 1) + "/" + ((int) entry[4] + 1);
+                    } else {
+                        loc = "S." + (rootPage + 1);
+                    }
                     listModel.addElement(cfg.getLabel() + "  (" + loc + ")");
                 }
             }
@@ -1940,12 +1949,27 @@ public class StreamDeckApp extends JFrame {
     private void navigateToResult(Object[] entry) {
         ButtonConfig cfg = (ButtonConfig) entry[0];
         int rootPage = (int) entry[1];
-        ButtonConfig folderCfg = (ButtonConfig) entry[2];
+        Object folderObj = entry[2];
 
-        if (folderCfg != null) {
+        if (folderObj instanceof List) {
+            List<ButtonConfig> chain = (List<ButtonConfig>) folderObj;
+            savedRootPage = rootPage;
+            folderStack.clear();
+            savedPageStack.clear();
+            currentFolder = null;
+            currentPage = rootPage;
+            for (ButtonConfig fc : chain) {
+                folderStack.push(fc);
+                savedPageStack.push(0);
+            }
+            if (!chain.isEmpty()) {
+                currentFolder = chain.get(chain.size() - 1);
+                currentPage = (int) entry[3];
+            }
+        } else if (folderObj != null) {
             savedRootPage = rootPage;
             currentPage = (int) entry[3];
-            currentFolder = folderCfg;
+            currentFolder = (ButtonConfig) folderObj;
         } else {
             currentFolder = null;
             currentPage = rootPage;
@@ -1953,7 +1977,7 @@ public class StreamDeckApp extends JFrame {
         updateAllButtons();
 
         List<ButtonConfig> btns = currentPageBtns();
-        int pageIdx = entry.length == 5 ? (int) entry[4] : (int) entry[3];
+        int pageIdx = entry.length >= 5 ? (int) entry[4] : (int) entry[3];
         int gridIdx = pageToGridIndex(pageIdx);
         if (gridIdx >= 0) {
             JButton btn = btnComponents[gridIdx];
@@ -1976,6 +2000,23 @@ public class StreamDeckApp extends JFrame {
             });
             reset.setRepeats(false);
             reset.start();
+        }
+    }
+
+    private void addFolderEntries(List<Object[]> allEntries, List<List<ButtonConfig>> folderPages, int rootPage, List<ButtonConfig> parentChain, ButtonConfig currentFolder) {
+        for (int fp = 0; fp < folderPages.size(); fp++) {
+            List<ButtonConfig> fpage = folderPages.get(fp);
+            for (int fi = 0; fi < fpage.size(); fi++) {
+                ButtonConfig fcfg = fpage.get(fi);
+                if (fcfg != null) {
+                    List<ButtonConfig> chain = new ArrayList<>(parentChain);
+                    chain.add(currentFolder);
+                    allEntries.add(new Object[]{fcfg, rootPage, chain, fp, fi});
+                    if ("FOLDER".equals(fcfg.getType()) && fcfg.getPages() != null) {
+                        addFolderEntries(allEntries, fcfg.getPages(), rootPage, chain, fcfg);
+                    }
+                }
+            }
         }
     }
 
